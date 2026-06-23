@@ -1,0 +1,60 @@
+/* ═══════════════════════════════════════════════════
+   COMPONENT TOKENS — consumed by individual components.
+   Decouples component styling from raw semantic values.
+═══════════════════════════════════════════════════ */
+:root {
+  /* ── Button ── */
+  --btn-h-sm:     32px;
+  --btn-h-md:     40px;
+  --btn-h-lg:     48px;
+  --btn-px-sm:    14px;
+  --btn-px-md:    20px;
+  --btn-px-lg:    28px;
+  --btn-radius:   var(--r-full);
+  --btn-font-sz:  0.875rem;
+  --btn-font-w:   600;
+  --btn-tracking: 0.02em;
+
+  /* ── Card ── */
+  --card-bg:      var(--s1);
+  --card-border:  var(--bd-2);
+  --card-radius:  var(--r-xl);
+  --card-pad:     24px;
+  --card-shadow:  var(--sh-card);
+  --card-hover-shadow: var(--sh-lift);
+  --card-hover-border: var(--bd-a);
+
+  /* ── Input ── */
+  --input-bg:           var(--s1);
+  --input-border:       var(--bd-2);
+  --input-border-focus: var(--c-accent);
+  --input-h:            44px;
+  --input-radius:       var(--r-md);
+  --input-px:           14px;
+
+  /* ── Navigation ── */
+  --nav-h:      64px;
+  --nav-bg:     transparent;
+  --nav-stuck-bg: var(--glass);
+  --nav-border: var(--bd-1);
+
+  /* ── Badge / Tag ── */
+  --tag-h-sm:   20px;
+  --tag-h-md:   24px;
+  --tag-radius: var(--r-full);
+  --tag-px:     10px;
+
+  /* ── Project card ── */
+  --proj-thumb-ratio: 16 / 9;
+
+  /* ── Contact heading ── */
+  --fs-contact-heading: 4.5rem; /* 72px */
+
+  /* ── Loader ── */
+  --loader-font-sz: clamp(2.5rem, 7vw, 4.5rem);
+  --loader-tracking: -0.06em;
+
+  /* ── Focus ring ── */
+  --focus-ring:        2px solid var(--c-accent);
+  --focus-ring-offset: 3px;
+}

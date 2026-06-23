@@ -1,0 +1,83 @@
+/* ═══════════════════════════════════════════════════
+   PRIMITIVES — raw values, never used in components.
+   Referenced only by semantic.css and dark.css.
+═══════════════════════════════════════════════════ */
+:root {
+  /* ── Warm earth palette ── */
+  --cream-50:  #FDFAF5;
+  --cream-100: #F6F1E8;
+  --cream-200: #EFE8DA;
+  --cream-300: #E8DED1;
+  --cream-400: #D9CCBC;
+  --cream-500: #D8C7B4;
+  --cream-600: #C8B49F;
+
+  --brown-100: #C4B5A8;
+  --brown-200: #9E8878;
+  --brown-300: #8B7355;
+  --brown-400: #7A6A5D;
+  --brown-500: #6F5643;
+  --brown-600: #5A4536;
+  --brown-700: #4A3828;
+  --brown-800: #3A2B1E;
+
+  --clay-400:  #C4873E;
+  --clay-500:  #A66A43;
+  --clay-600:  #8F5736;
+
+  --sage-500:  #7A8C6E;
+  --rust-500:  #9B4A3A;
+
+  /* ── Espresso (dark mode) scale ── */
+  --espresso-50:  #F6F1E8;
+  --espresso-100: #C8B49F;
+  --espresso-200: #7A6A5D;
+  --espresso-300: #4A3828;
+  --espresso-400: #3A2B1E;
+  --espresso-500: #2B1F14;
+  --espresso-600: #211710;
+  --espresso-700: #1F160D;
+  --espresso-800: #140E08;
+
+  /* ── Easing ── */
+  --ease-expo:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-std:      cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-quart:cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-decel:    cubic-bezier(0, 0, 0.2, 1);
+
+  /* ── Duration ── */
+  --dur-instant: 80ms;
+  --dur-fast:   150ms;
+  --dur-base:   200ms;
+  --dur-slow:   300ms;
+  --dur-xslow:  500ms;
+  --dur-page:   600ms;
+
+  /* ── Stagger ── */
+  --stagger-base: 60ms;
+  --stagger-grid: 40ms;
+
+  /* ── Border radius ── */
+  --r-xs: 4px; --r-sm: 6px;  --r-md: 8px;
+  --r-lg: 12px; --r-xl: 16px; --r-2xl: 20px; --r-3xl: 24px; --r-full: 9999px;
+
+  /* ── Layout ── */
+  --nav-h:   64px;
+  --site-w:  1280px;
+  --col-w:   760px;
+  --px:      80px;
+  --px-md:   24px;
+  --px-sm:   16px;
+  --sec-py:  120px;
+  --col-gap: clamp(1rem, 1.5vw, 1.5rem);
+
+  /* ── Spacing scale (4px base) ── */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px; --sp-20: 80px;
+
+  /* ── Z-index scale ── */
+  --z-base:   0; --z-raised: 10; --z-sticky: 50;
+  --z-nav:    100; --z-modal: 200; --z-loader: 9999;
+}

@@ -1,0 +1,50 @@
+/* ═══════════════════════════════════════════════════
+   DARK — overrides applied when data-theme="dark".
+   Only properties that differ from light are listed.
+   Palette direction: near-black charcoal, warm off-white
+   text. Accent brown used only for highlights/CTAs.
+═══════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  /* ── Surfaces — charcoal, not brown ── */
+  --bg:      #0F0F0E;
+  --s1:      #181816;
+  --s2:      #1F1F1D;
+  --s3:      #252523;
+  --glass:   rgba(24,24,22,0.88);
+  --overlay: rgba(15,15,14,0.78);
+
+  /* ── Text — warm off-white, minimal brown tint ── */
+  --tx-1:    #F4EFE7;
+  --tx-2:    #B8AEA2;
+  --tx-3:    #706866;
+  --tx-4:    #3E3B38;
+  --tx-link: #C8A882;
+
+  /* ── Borders — translucent off-white, no solid brown ── */
+  --bd-1: rgba(244,239,231,0.08);
+  --bd-2: rgba(244,239,231,0.10);
+  --bd-3: rgba(244,239,231,0.16);
+  --bd-a: rgba(166,106,67,0.28);
+
+  /* ── Shadows ── */
+  --sh-xs:   0 1px 2px rgba(0,0,0,.50);
+  --sh-sm:   0 2px 8px rgba(0,0,0,.55);
+  --sh-card: 0 4px 24px rgba(0,0,0,.60), 0 1px 4px rgba(0,0,0,.40);
+  --sh-lift: 0 8px 40px rgba(0,0,0,.75), 0 2px 8px rgba(0,0,0,.50);
+  --sh-nav:  0 1px 3px rgba(0,0,0,.55);
+
+  /* ── Glows — accent brown, used sparingly ── */
+  --glow-s:   0 0 18px rgba(166,106,67,.08);
+  --glow-m:   0 0 30px rgba(166,106,67,.14);
+  --glow-cta: 0 0 32px rgba(111,86,67,.22), 0 0 8px rgba(111,86,67,.14);
+
+  /* ── Thumbnail overlay ── */
+  --thumb-from: rgba(15,15,14,0);
+  --thumb-to:   rgba(15,15,14,0.92);
+
+  /* ── Tag backgrounds ── */
+  --tag-a-bg: rgba(166,106,67,0.12);
+  --tag-m-bg: rgba(244,239,231,0.05);
+
+  color-scheme: dark;
+}

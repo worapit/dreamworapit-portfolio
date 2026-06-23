@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx next *)",
+      "Bash(npm run *)",
+      "Bash(node -e \"require\\('@babel/core'\\)\")",
+      "Bash(node --check src/components/identity/Hero.jsx)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(timeout 30 bash -c 'until curl -sf http://localhost:3001 >/dev/null; do sleep 1; done')",
+      "Bash(node -e \"require.resolve\\('playwright'\\)\")",
+      "Bash(npx --no-install playwright --version)",
+      "Bash(npx -y playwright@1.61.0 --version)",
+      "Bash(mkdir -p /tmp/pw-verify)",
+      "Read(//tmp/**)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(npx playwright *)",
+      "Bash(node verify.js)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(rm -rf /tmp/pw-verify)",
+      "Bash(node -e ' *)",
+      "Bash(node --experimental-vm-modules -e ' *)",
+      "Bash(pkill -f \"next dev\" 2>/dev/null; rm -rf /tmp/pw-verify3; echo done)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp/pw-verify3"
+    ]
+  }
+}

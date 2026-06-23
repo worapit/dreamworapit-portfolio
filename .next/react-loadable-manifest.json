@@ -1,0 +1,80 @@
+{
+  "components/identity/Hero.jsx -> ../../styles/motion/presets": {
+    "id": "components/identity/Hero.jsx -> ../../styles/motion/presets",
+    "files": [
+      "static/chunks/_app-pages-browser_src_styles_motion_presets_js.js"
+    ]
+  },
+  "components/layout/PageWrapper.jsx -> gsap": {
+    "id": "components/layout/PageWrapper.jsx -> gsap",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_index_js.js"
+    ]
+  },
+  "components/layout/StackedReveal.jsx -> gsap": {
+    "id": "components/layout/StackedReveal.jsx -> gsap",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_index_js.js"
+    ]
+  },
+  "components/layout/StackedReveal.jsx -> gsap/ScrollTrigger": {
+    "id": "components/layout/StackedReveal.jsx -> gsap/ScrollTrigger",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_ScrollTrigger_js.js"
+    ]
+  },
+  "components/narrative/ContactSection.jsx -> gsap": {
+    "id": "components/narrative/ContactSection.jsx -> gsap",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_index_js.js"
+    ]
+  },
+  "components/narrative/ContactSection.jsx -> gsap/ScrollTrigger": {
+    "id": "components/narrative/ContactSection.jsx -> gsap/ScrollTrigger",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_ScrollTrigger_js.js"
+    ]
+  },
+  "components/narrative/Testimonial.jsx -> ../../styles/motion/scroll": {
+    "id": "components/narrative/Testimonial.jsx -> ../../styles/motion/scroll",
+    "files": [
+      "static/chunks/_app-pages-browser_src_styles_motion_scroll_js.js"
+    ]
+  },
+  "components/narrative/Testimonial.jsx -> gsap": {
+    "id": "components/narrative/Testimonial.jsx -> gsap",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_index_js.js"
+    ]
+  },
+  "components/showcase/ProjectCard.jsx -> ../../styles/motion/presets": {
+    "id": "components/showcase/ProjectCard.jsx -> ../../styles/motion/presets",
+    "files": [
+      "static/chunks/_app-pages-browser_src_styles_motion_presets_js.js"
+    ]
+  },
+  "components/showcase/ProjectCard.jsx -> ../../styles/motion/scroll": {
+    "id": "components/showcase/ProjectCard.jsx -> ../../styles/motion/scroll",
+    "files": [
+      "static/chunks/_app-pages-browser_src_styles_motion_scroll_js.js"
+    ]
+  },
+  "styles/motion/presets.js -> gsap": {
+    "id": "styles/motion/presets.js -> gsap",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_index_js.js"
+    ]
+  },
+  "styles/motion/scroll.js -> gsap": {
+    "id": "styles/motion/scroll.js -> gsap",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_index_js.js"
+    ]
+  },
+  "styles/motion/scroll.js -> gsap/ScrollTrigger": {
+    "id": "styles/motion/scroll.js -> gsap/ScrollTrigger",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_gsap_ScrollTrigger_js.js"
+    ]
+  }
+}
