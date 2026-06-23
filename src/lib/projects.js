@@ -171,40 +171,7 @@ export const PROJECTS = [
       '800+ users were onboarded without formal training sessions. Assessment submission became a structured guided workflow, and compliance reporting was consolidated from fragmented email chains into a single audit-ready system.',
   },
 
-  /* ── 6. PixelParade — work page only ─────────────────────────── */
-  {
-    slug: 'pixelparade',
-    title: 'PixelParade',
-    showOnHome: false,
-    workSection: 'product',
-    category: 'Digital Signage',
-    company: 'Personal Project',
-    role: 'Product Designer',
-    year: '2024',
-    tools: ['Figma', 'FigJam', 'Storybook'],
-    tags: ['Digital Signage', 'CMS', 'Multi-Location'],
-    editorialMeta: 'PixelParade | Digital Signage Platform',
-    headline: 'Empowering teams to manage digital displays at scale',
-    shortDesc:
-      'Scaled content publishing across multi-location display networks without exposing operational complexity to everyday users.',
-    outcome: 'Multi-location scheduling made accessible to non-technical operators',
-    gradient: 'linear-gradient(135deg,#030814 0%,#060F30 50%,#0B1E78 100%)',
-    icon: null,
-    overview:
-      'PixelParade is a digital signage content management system that supports operators managing content across distributed networks of screens. The platform is designed to serve two audiences: non-technical coordinators who need simple publishing, and experienced operators who need advanced scheduling control.',
-    challenge:
-      'Existing signage CMS tools were either too complex for everyday staff or too simplified for power users. There was no product that served both audiences without compromising the needs of either.',
-    process: [
-      'Defined two primary personas: content coordinators and system administrators',
-      'Designed a layered interface — a simple mode for routine publishing, an advanced mode for complex scheduling',
-      'Created a scheduling calendar that makes multi-screen, multi-location content conflicts visible at a glance',
-      'Self-tested core flows against real-world scheduling scenarios across multiple screen types',
-    ],
-    result:
-      'The layered interface allowed non-technical coordinators to publish content independently while giving administrators the advanced controls needed for complex, multi-location scheduling — without exposing unnecessary complexity to either group.',
-  },
-
-  /* ── 7. Giftiny — work page only ────────────────────────────── */
+  /* ── 6. Giftiny — work page only ────────────────────────────── */
   {
     slug: 'giftiny',
     title: 'Giftiny',
@@ -235,7 +202,7 @@ export const PROJECTS = [
       'The platform achieved a clear separation between creator-facing complexity and buyer-facing simplicity. Production and fulfilment were abstracted entirely into the system workflow — neither side needed to understand the other\'s domain to complete their task.',
   },
 
-  /* ── 8. Robinhood Redesign — work page only ─────────────────── */
+  /* ── 7. Robinhood Redesign — work page only ─────────────────── */
   {
     slug: 'robinhood-redesign',
     title: 'Robinhood Redesign',
@@ -264,6 +231,39 @@ export const PROJECTS = [
     ],
     result:
       'The redesigned architecture reduced steps between search and checkout, improved food discovery confidence, and directly addressed the primary drop-off points identified during research — demonstrating that the problem was structural, not cosmetic.',
+  },
+
+  /* ── 8. PixelParade — work page only ─────────────────────────── */
+  {
+    slug: 'pixelparade',
+    title: 'PixelParade',
+    showOnHome: false,
+    workSection: 'case-study',
+    category: 'Digital Signage',
+    company: 'Personal Project',
+    role: 'Product Designer',
+    year: '2024',
+    tools: ['Figma', 'FigJam', 'Storybook'],
+    tags: ['Digital Signage', 'CMS', 'Multi-Location'],
+    editorialMeta: 'PixelParade | Digital Signage Platform',
+    headline: 'Empowering teams to manage digital displays at scale',
+    shortDesc:
+      'Scaled content publishing across multi-location display networks without exposing operational complexity to everyday users.',
+    outcome: 'Multi-location scheduling made accessible to non-technical operators',
+    gradient: 'linear-gradient(135deg,#030814 0%,#060F30 50%,#0B1E78 100%)',
+    icon: null,
+    overview:
+      'PixelParade is a digital signage content management system that supports operators managing content across distributed networks of screens. The platform is designed to serve two audiences: non-technical coordinators who need simple publishing, and experienced operators who need advanced scheduling control.',
+    challenge:
+      'Existing signage CMS tools were either too complex for everyday staff or too simplified for power users. There was no product that served both audiences without compromising the needs of either.',
+    process: [
+      'Defined two primary personas: content coordinators and system administrators',
+      'Designed a layered interface — a simple mode for routine publishing, an advanced mode for complex scheduling',
+      'Created a scheduling calendar that makes multi-screen, multi-location content conflicts visible at a glance',
+      'Self-tested core flows against real-world scheduling scenarios across multiple screen types',
+    ],
+    result:
+      'The layered interface allowed non-technical coordinators to publish content independently while giving administrators the advanced controls needed for complex, multi-location scheduling — without exposing unnecessary complexity to either group.',
   },
 ];
 

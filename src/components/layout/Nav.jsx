@@ -6,9 +6,8 @@ import Link from 'next/link';
 import { useTheme } from '../../hooks/useTheme';
 
 const NAV_LINKS = [
-  { label: 'Work',     href: '/work'   },
-  { label: 'Creative', href: '/create' },
-  { label: 'About',    href: '/about'  },
+  { label: 'Work',  href: '/work'  },
+  { label: 'About', href: '/about' },
 ];
 
 export default function Nav() {
@@ -66,15 +65,19 @@ export default function Nav() {
         role="navigation"
         aria-label="Main navigation"
       >
-        <div className="nav__pill">
-          <div className="nav__row">
+        {/* Alignment container — same max-width/padding as .wrap, so the
+            logo and the pill line up with the page content below. */}
+        <div className="nav__container">
 
-            {/* Logo */}
-            <Link href="/" className="nav__logo" aria-label="w0rapit — Home">
-              w0rapit
-            </Link>
+          {/* Logo — always left, links to Home. Plain text, no pill. */}
+          <Link href="/" className="nav__logo" aria-label="w0rapit — Home">
+            w<span className="nav__logo-accent">0</span>
+          </Link>
 
-            {/* Desktop links */}
+          {/* The pill — hugs its own content, sits at the right edge of
+              the alignment container. Surface (bg/border/shadow) only
+              appears once scrolled; see .nav.stuck .nav__pill. */}
+          <div className="nav__pill">
             <ul className="nav__links" role="list">
               {NAV_LINKS.map(({ label, href }) => (
                 <li key={label}>
@@ -89,7 +92,9 @@ export default function Nav() {
               ))}
             </ul>
 
-            <div className="nav__right">
+            <span className="nav__divider" aria-hidden="true" />
+
+            <div className="nav__utility">
               {/* Theme toggle */}
               <button
                 className="theme-btn"
@@ -110,7 +115,7 @@ export default function Nav() {
               </button>
 
               {/* Desktop CTA */}
-              <Link href="/#contact" className="btn btn--pr btn--sm">
+              <Link href="/#contact" className="btn btn--pr btn--sm nav__cta">
                 Get In Touch
               </Link>
 

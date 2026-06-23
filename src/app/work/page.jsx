@@ -1,6 +1,7 @@
 import { generateMeta } from '../../lib/seo';
 import { PROJECTS } from '../../lib/projects';
 import WorkCard from '../../components/showcase/WorkCard';
+import WorkSectionNav from '../../components/showcase/WorkSectionNav';
 
 export const metadata = generateMeta({
   title: 'Work — w0rapit',
@@ -12,33 +13,35 @@ const SECTIONS = [
   {
     id: 'product-work',
     eyebrow: 'Product Work',
-    description: 'Product design work, design systems, and client projects.',
+    description: 'Real-world products, design systems, and client projects.',
     section: 'product',
   },
   {
     id: 'case-studies',
     eyebrow: 'Case Studies',
-    description: 'Independent explorations, research, and redesign projects.',
+    description: 'Independent explorations, redesigns, and product concepts.',
     section: 'case-study',
   },
 ];
 
 export default function WorkPage() {
+  const navSections = SECTIONS
+    .map(({ id, eyebrow, section }) => ({
+      id,
+      label: eyebrow,
+      count: PROJECTS.filter((p) => p.workSection === section).length,
+    }))
+    .filter(({ count }) => count > 0);
+
   return (
     <main style={{ paddingTop: 'var(--nav-h)' }}>
+
+      {/* ── Tabs — lightweight, sticky only once scrolled past it ── */}
+      <WorkSectionNav sections={navSections} />
+
       <div className="wrap">
-
-        {/* ── Page header ── */}
-        <header className="work-pg__hd">
-          <p className="eyebrow" aria-hidden="true">All Projects</p>
-          <h1 className="work-pg__title">Selected Work</h1>
-          <p className="work-pg__sub">
-            {PROJECTS.length} case studies across product design, UX research, and design systems.
-          </p>
-        </header>
-
         {/* ── Sections — Product Work, then Case Studies ── */}
-        {SECTIONS.map(({ id, eyebrow, description, section }, i) => {
+        {SECTIONS.map(({ id, eyebrow, description, section }) => {
           const projects = PROJECTS.filter((p) => p.workSection === section);
           if (projects.length === 0) return null;
 
@@ -48,7 +51,6 @@ export default function WorkPage() {
               id={id}
               className="work-section"
               aria-labelledby={`${id}-h`}
-              style={i > 0 ? { marginTop: 'clamp(5rem,9vw,8rem)' } : undefined}
             >
               <header className="work-section__hd">
                 <h2 className="work-section__title" id={`${id}-h`}>{eyebrow}</h2>
