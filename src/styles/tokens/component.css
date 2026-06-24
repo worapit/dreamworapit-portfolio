@@ -34,6 +34,8 @@
 
   /* ── Navigation ── */
   --nav-h:      64px;
+  --nav-offset: clamp(16px, 2vw, 24px);
+  --nav-total-h: calc(var(--nav-offset) + var(--nav-h));
   --nav-bg:     transparent;
   --nav-stuck-bg: var(--glass);
   --nav-border: var(--bd-1);

@@ -69,9 +69,13 @@ export default function Nav() {
             logo and the pill line up with the page content below. */}
         <div className="nav__container">
 
-          {/* Logo — always left, links to Home. Plain text, no pill. */}
+          {/* Logo — always left, links to Home. Plain text, no pill, with
+              a small accent dot that only fully resolves on hover. */}
           <Link href="/" className="nav__logo" aria-label="w0rapit — Home">
-            w<span className="nav__logo-accent">0</span>
+            <span className="nav__logo-mark">
+              w<span className="nav__logo-accent">0</span>
+            </span>
+            <span className="nav__logo-dot" aria-hidden="true" />
           </Link>
 
           {/* The pill — hugs its own content, sits at the right edge of

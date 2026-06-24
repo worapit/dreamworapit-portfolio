@@ -21,7 +21,12 @@
       "Bash(rm -rf /tmp/pw-verify)",
       "Bash(node -e ' *)",
       "Bash(node --experimental-vm-modules -e ' *)",
-      "Bash(pkill -f \"next dev\" 2>/dev/null; rm -rf /tmp/pw-verify3; echo done)"
+      "Bash(pkill -f \"next dev\" 2>/dev/null; rm -rf /tmp/pw-verify3; echo done)",
+      "Bash(curl -sf http://localhost:3000)",
+      "Bash(curl -sf http://localhost:3001)",
+      "Bash(chromium-cli --help)",
+      "Bash(npm ls *)",
+      "Bash(npx -y playwright install chromium --with-deps)"
     ],
     "additionalDirectories": [
       "/private/tmp/pw-verify3"
