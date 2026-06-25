@@ -350,34 +350,9 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 }
 @media(max-width:1024px){ .hero__body{ grid-column: span 8; } }
 @media(max-width:640px) { .hero__body{ grid-column: span 4; } }
-.hero__avail {
-  display:inline-flex; align-items:center; gap:.625rem; margin-bottom:2.5rem;
-  padding:.375rem .875rem .375rem .625rem;
-  background:rgba(122,140,110,0.10);
-  backdrop-filter:blur(12px) saturate(1.4);
-  -webkit-backdrop-filter:blur(12px) saturate(1.4);
-  border:1px solid rgba(122,140,110,0.20);
-  border-radius:var(--r-full);
-  box-shadow:0 0 20px rgba(122,140,110,0.07), inset 0 1px 0 rgba(255,255,255,0.04);
-}
-[data-theme="light"] .hero__avail {
-  background:rgba(122,140,110,0.08);
-  border-color:rgba(122,140,110,0.22);
-  box-shadow:0 0 20px rgba(122,140,110,0.06);
-}
-.dot { position:relative; width:8px; height:8px; flex-shrink:0; }
-.dot__ping {
-  position:absolute; inset:0; border-radius:50%; background:var(--c-success);
-  opacity:.7; animation:ping 1.8s ease-in-out infinite;
-}
-.dot__solid { position:relative; width:8px; height:8px; border-radius:50%; background:var(--c-success); }
-.hero__avail-txt { font-size:.6875rem; font-weight:600; letter-spacing:.04em; color:rgba(180,210,165,0.90); }
-[data-theme="light"] .hero__avail-txt { color:rgba(60,80,50,0.85); }
-@keyframes ping { 0%{transform:scale(1);opacity:.7} 75%,100%{transform:scale(2.4);opacity:0} }
-@media(prefers-reduced-motion:reduce){ .dot__ping{ animation:none; } }
 .hero__identity {
   display:flex; flex-direction:column; align-items:flex-start; gap:.25rem;
-  margin-bottom:2.5rem;
+  margin-bottom:1.25rem;
 }
 .hero__name {
   font-size:.875rem; font-weight:600;
@@ -393,7 +368,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .hero__line1 {
   font-family:'Tiempos Text', Georgia, 'Times New Roman', serif;
   font-size:clamp(2rem,3.5vw,3.25rem); /* 32px → 52px */
-  font-weight:400;
+  font-weight:500;
   letter-spacing:-.02em; line-height:1.15; color:var(--tx-1);
 }
 .hero__line2 {
@@ -402,18 +377,15 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   font-weight:400;
   letter-spacing:-.02em; line-height:1.15; color:var(--tx-2);
 }
-/* Status/meta line — reads as a quiet system status, not body copy */
-.hero__status {
-  display:inline-flex; align-items:center; gap:.5rem;
-  margin-top:1.5rem;
+/* Status/meta lines — plain text, same size as .hero__name, no chrome */
+.hero__status,
+.hero__opportunity {
+  margin-top:.5rem;
   font-size:.875rem; font-weight:500; letter-spacing:.01em; line-height:1.4;
   color:var(--tx-3);
   text-decoration:none; cursor:default;
 }
-.hero__status-dot {
-  width:6px; height:6px; border-radius:50%; flex-shrink:0;
-  background:var(--c-success);
-}
+.hero__status { margin-top:1.5rem; }
 
 /* Explore Selected Work — plain text + stacked chevrons, no chrome at all */
 .hero__indicator {
@@ -879,11 +851,6 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   font-weight:400; letter-spacing:-.015em;
   color:var(--tx-1);
 }
-.work-section__desc {
-  margin-top:.625rem;
-  font-size:.9375rem; color:var(--tx-3); line-height:1.6;
-  max-width:42ch;
-}
 [data-theme="dark"] .work-section__title { color:rgba(255,255,255,0.92); }
 
 /* 2-column project grid */
@@ -896,71 +863,92 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
    keep the 2-column grid above. */
 @media(max-width:767px){ .work-grid{ grid-template-columns:1fr; } }
 
-/* Work card — one complete glass unit: image + title + meta + hover
-   action all live inside a single bordered card and a single link. */
+/* Work card — full-image card: the image fills the whole card and a
+   bottom gradient overlay carries the title/meta (always visible) and
+   a corner arrow (hover-only). One visual block, one link as the click target. */
 .work-card { display:block; }
 
 .work-card__link {
-  display:flex; flex-direction:column;
-  text-decoration:none; color:inherit;
+  position:relative; display:block;
+  aspect-ratio:4/3;
   border-radius:var(--r-3xl); overflow:hidden;
   border:1px solid var(--bd-1);
+  text-decoration:none; color:inherit;
   background:var(--s1);
-  box-shadow:var(--card-shadow);
-  transition:transform 320ms var(--ease-std), border-color 320ms var(--ease-std),
-    box-shadow 320ms var(--ease-std);
+  transition:box-shadow 320ms var(--ease-std), border-color 320ms var(--ease-std);
 }
 [data-theme="dark"] .work-card__link { border-color:rgba(255,255,255,0.06); }
-.work-card__link:hover {
-  transform:translateY(-3px);
+.work-card__link:hover,
+.work-card__link:focus-visible {
   border-color:var(--bd-2);
   box-shadow:var(--card-hover-shadow);
 }
 
-.work-card__img {
-  position:relative; display:block;
-  aspect-ratio:16/10;
-}
-
 .work-card__art {
+  position:absolute; inset:0;
   width:100%; height:100%;
   background:#E5E1DA;
   transition:transform 500ms var(--ease-expo);
 }
 [data-theme="dark"] .work-card__art { background:var(--s2); }
-.work-card__link:hover .work-card__art { transform:scale(1.03); }
+.work-card__link:hover .work-card__art,
+.work-card__link:focus-visible .work-card__art { transform:scale(1.03); }
 
+/* Bottom gradient — transparent at the top, dark at the bottom, just
+   enough to keep the always-visible title/meta readable over any image */
 .work-card__overlay {
   position:absolute; inset:0;
-  background:linear-gradient(to top, var(--thumb-to) 0%, rgba(43,33,26,.45) 45%, transparent 100%);
-  display:flex; align-items:flex-end;
+  background:linear-gradient(to top, var(--thumb-to) 0%, rgba(43,33,26,.55) 38%, transparent 75%);
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:1rem;
   padding:1.25rem 1.5rem;
-  opacity:0; transition:opacity 350ms var(--ease-std);
+  transition:background 350ms var(--ease-std);
 }
-.work-card__link:hover .work-card__overlay { opacity:1; }
-.work-card__overlay-cta {
-  font-family:var(--f-body); font-size:.875rem; font-weight:500;
-  letter-spacing:.02em; color:rgba(246,241,232,.92);
+.work-card__link:hover .work-card__overlay,
+.work-card__link:focus-visible .work-card__overlay {
+  background:linear-gradient(to top, var(--thumb-to) 0%, rgba(43,33,26,.68) 45%, transparent 80%);
 }
 
-/* Info — title first (the focus), meta second (quiet support) */
-.work-card__info {
+.work-card__overlay-text {
   display:flex; flex-direction:column; gap:.3125rem;
-  padding:1.25rem 1.5rem 1.5rem;
 }
+
+/* Title is the strongest element in the overlay; meta is quieter */
 .work-card__title {
   font-family:'Tiempos Text', Georgia, serif;
   font-size:clamp(1.375rem,2.2vw,1.625rem);
-  font-weight:400; letter-spacing:-.015em;
-  color:var(--tx-1); line-height:1.22;
+  font-weight:500; letter-spacing:-.015em;
+  color:rgba(246,241,232,.98); line-height:1.22;
+  text-shadow:0 1px 12px rgba(0,0,0,.25);
 }
 .work-card__meta {
   font-size:.6875rem; font-weight:600; letter-spacing:.06em;
   text-transform:uppercase;
-  color:var(--tx-3); opacity:.65;
+  color:rgba(246,241,232,.72);
 }
-[data-theme="dark"] .work-card__title { color:rgba(255,255,255,0.92); }
-[data-theme="dark"] .work-card__meta  { color:rgba(255,255,255,0.40); opacity:1; }
+
+/* Corner arrow — hidden until hover/focus, fades in and slides up slightly */
+.work-card__arrow {
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; width:2.25rem; height:2.25rem;
+  border-radius:50%;
+  color:rgba(246,241,232,.95);
+  background:rgba(246,241,232,.14);
+  opacity:0; transform:translateY(6px);
+  transition:opacity 320ms var(--ease-std), transform 320ms var(--ease-std);
+}
+.work-card__link:hover .work-card__arrow,
+.work-card__link:focus-visible .work-card__arrow {
+  opacity:1; transform:translateY(0);
+}
+
+@media(prefers-reduced-motion:reduce) {
+  .work-card__art,
+  .work-card__overlay,
+  .work-card__arrow,
+  .work-card__link { transition:none; }
+  .work-card__link:hover .work-card__art { transform:none; }
+}
 
 /* ═══════════════════════════════════════════════════
    14. About page (/about)

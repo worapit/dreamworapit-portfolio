@@ -89,16 +89,18 @@ export default function Hero() {
             {/* Main headline — two-part sentence */}
             <h1 className="hero__h1" id="hero-h1">
               <span className="hero__line1" data-gsap="" data-hero-line1="">
-                Designing products that turn complexity into clarity,
+                Digital Product Designer,
               </span>
               <span className="hero__line2" data-gsap="" data-hero-line2="">
-                using AI-enhanced workflows to craft better experiences.
+                bridging user needs and business goals through thoughtful experiences.
               </span>
             </h1>
 
             <p className="hero__status" data-gsap="" data-hero-desc="">
-              <span className="hero__status-dot" aria-hidden="true" />
-              Currently designing products in PropTech.
+              Currently designing PropTech products at Livinginsider.
+            </p>
+            <p className="hero__opportunity" data-gsap="" data-hero-tag="">
+              ✸ Open to Full-time &amp; Freelance Opportunities
             </p>
 
           </div>
@@ -113,7 +115,7 @@ export default function Hero() {
       >
         <span className="hero__indicator-txt">Explore Selected Work</span>
         <span className="hero__indicator-chevrons" aria-hidden="true">
-          {[0, 1, 2].map((i) => (
+          {[0, 1].map((i) => (
             <svg
               key={i}
               className="hero__indicator-chevron"

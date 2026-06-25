@@ -13,13 +13,11 @@ const SECTIONS = [
   {
     id: 'product-work',
     eyebrow: 'Product Work',
-    description: 'Real-world products, design systems, and client projects.',
     section: 'product',
   },
   {
     id: 'case-studies',
     eyebrow: 'Case Studies',
-    description: 'Independent explorations, redesigns, and product concepts.',
     section: 'case-study',
   },
 ];
@@ -41,7 +39,7 @@ export default function WorkPage() {
 
       <div className="wrap">
         {/* ── Sections — Product Work, then Case Studies ── */}
-        {SECTIONS.map(({ id, eyebrow, description, section }) => {
+        {SECTIONS.map(({ id, eyebrow, section }) => {
           const projects = PROJECTS.filter((p) => p.workSection === section);
           if (projects.length === 0) return null;
 
@@ -54,7 +52,6 @@ export default function WorkPage() {
             >
               <header className="work-section__hd">
                 <h2 className="work-section__title" id={`${id}-h`}>{eyebrow}</h2>
-                <p className="work-section__desc">{description}</p>
               </header>
 
               <div className="work-grid">

@@ -61,6 +61,7 @@ export async function heroReveal() {
   gsap.set('[data-hero-line1]',  { y: 32 });
   gsap.set('[data-hero-line2]',  { y: 32 });
   gsap.set('[data-hero-desc]',   { y: 24 });
+  gsap.set('[data-hero-tag]',    { y: 16 });
   gsap.set('[data-hero-cta]',    { y: 18 });
   gsap.set('[data-hero-card]',   { y: 16 });
   gsap.set('[data-hero-scroll]', { y:  8 });
@@ -71,9 +72,10 @@ export async function heroReveal() {
     .to('[data-hero-line1]',  { opacity: 1, y: 0, duration: 0.65 }, 0.12)
     .to('[data-hero-line2]',  { opacity: 1, y: 0, duration: 0.65 }, 0.24)
     .to('[data-hero-desc]',   { opacity: 1, y: 0, duration: 0.52, ease: 'power2.out' }, 0.44)
-    .to('[data-hero-cta]',    { opacity: 1, y: 0, duration: 0.46 }, 0.58)
-    .to('[data-hero-card]',   { opacity: 1, y: 0, duration: 0.44, stagger: 0.10 }, 0.70)
-    .to('[data-hero-scroll]', { opacity: 1, y: 0, duration: 0.40 }, 0.94);
+    .to('[data-hero-tag]',    { opacity: 1, y: 0, duration: 0.42 }, 0.54)
+    .to('[data-hero-cta]',    { opacity: 1, y: 0, duration: 0.46 }, 0.62)
+    .to('[data-hero-card]',   { opacity: 1, y: 0, duration: 0.44, stagger: 0.10 }, 0.74)
+    .to('[data-hero-scroll]', { opacity: 1, y: 0, duration: 0.40 }, 0.98);
 
   return () => tl.kill();
 }
