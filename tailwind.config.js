@@ -4,6 +4,13 @@ module.exports = {
   // Dark mode via data-theme attribute (set on <html>)
   darkMode: ['class', '[data-theme="dark"]'],
   theme: {
+    // Overrides (not `extend`) — replaces Tailwind's own default
+    // `ui-sans-serif, system-ui, ...` Preflight stack with DM Sans, so
+    // `html`'s base font-family is DM Sans too, not just elements that
+    // opt in via `font-display`/`font-body`.
+    fontFamily: {
+      sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+    },
     extend: {
       colors: {
         primary:   'var(--c-primary)',

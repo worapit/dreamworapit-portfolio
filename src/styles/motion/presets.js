@@ -56,26 +56,21 @@ export async function runLoader({ onComplete } = {}) {
 export async function heroReveal() {
   const { default: gsap } = await import('gsap');
 
-  // Set initial y-offsets (opacity:0 is already in CSS via .js [data-gsap])
-  gsap.set('[data-hero-avail]',  { y: 20 });
-  gsap.set('[data-hero-line1]',  { y: 32 });
-  gsap.set('[data-hero-line2]',  { y: 32 });
-  gsap.set('[data-hero-desc]',   { y: 24 });
-  gsap.set('[data-hero-tag]',    { y: 16 });
-  gsap.set('[data-hero-cta]',    { y: 18 });
-  gsap.set('[data-hero-card]',   { y: 16 });
-  gsap.set('[data-hero-scroll]', { y:  8 });
+  // Set initial y-offsets (opacity:0 is already in CSS via .js [data-gsap]).
+  // Four-step sequence — name, headline, role, then the scroll cue —
+  // each starting ~130ms after the last for a subtle, consistent
+  // stagger rather than one big simultaneous reveal.
+  gsap.set('[data-hero-name]',     { y: 16 });
+  gsap.set('[data-hero-headline]', { y: 26 });
+  gsap.set('[data-hero-role]',     { y: 18 });
+  gsap.set('[data-hero-scroll]',   { y:  8 });
 
   const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
   tl
-    .to('[data-hero-avail]',  { opacity: 1, y: 0, duration: 0.50 }, 0.00)
-    .to('[data-hero-line1]',  { opacity: 1, y: 0, duration: 0.65 }, 0.12)
-    .to('[data-hero-line2]',  { opacity: 1, y: 0, duration: 0.65 }, 0.24)
-    .to('[data-hero-desc]',   { opacity: 1, y: 0, duration: 0.52, ease: 'power2.out' }, 0.44)
-    .to('[data-hero-tag]',    { opacity: 1, y: 0, duration: 0.42 }, 0.54)
-    .to('[data-hero-cta]',    { opacity: 1, y: 0, duration: 0.46 }, 0.62)
-    .to('[data-hero-card]',   { opacity: 1, y: 0, duration: 0.44, stagger: 0.10 }, 0.74)
-    .to('[data-hero-scroll]', { opacity: 1, y: 0, duration: 0.40 }, 0.98);
+    .to('[data-hero-name]',     { opacity: 1, y: 0, duration: 0.48 }, 0.00)
+    .to('[data-hero-headline]', { opacity: 1, y: 0, duration: 0.58, stagger: 0.08 }, 0.13)
+    .to('[data-hero-role]',     { opacity: 1, y: 0, duration: 0.48, ease: 'power2.out' }, 0.42)
+    .to('[data-hero-scroll]',   { opacity: 1, y: 0, duration: 0.40 }, 0.58);
 
   return () => tl.kill();
 }
@@ -120,12 +115,12 @@ export async function magneticButton(el, { maxX = 8, maxY = 4 } = {}) {
  * @param {HTMLElement} inner    — the element to scale
  * @returns {() => void} cleanup
  */
-export async function hoverZoom(wrapper, inner) {
+export async function hoverZoom(wrapper, inner, { scale = 1.03 } = {}) {
   if (!wrapper || !inner) return () => {};
   const { default: gsap } = await import('gsap');
 
-  const onEnter = () => gsap.to(inner, { scale: 1.05, duration: 0.55, ease: 'power2.out' });
-  const onLeave = () => gsap.to(inner, { scale: 1,    duration: 0.55, ease: 'power2.out' });
+  const onEnter = () => gsap.to(inner, { scale, duration: 0.55, ease: 'power2.out' });
+  const onLeave = () => gsap.to(inner, { scale: 1, duration: 0.55, ease: 'power2.out' });
 
   wrapper.addEventListener('mouseenter', onEnter);
   wrapper.addEventListener('mouseleave', onLeave);

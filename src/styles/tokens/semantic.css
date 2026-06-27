@@ -33,9 +33,12 @@
   --bd-3: rgba(43,33,26,0.18);   /* strong / focused     */
   --bd-a: rgba(166,106,67,0.22); /* accent border        */
 
-  /* ── Typography ── */
-  --f-display: var(--font-geist),   system-ui, sans-serif;
-  --f-body:    var(--font-manrope), system-ui, sans-serif;
+  /* ── Typography ──
+     One sans-serif (DM Sans) for both type roles — display weight/size
+     hierarchy is governed by the individual rules that consume these
+     tokens (h1–h6, .btn, etc.), not by loading two separate typefaces. */
+  --f-display: var(--font-dm-sans), system-ui, sans-serif;
+  --f-body:    var(--font-dm-sans), system-ui, sans-serif;
   --f-mono:    'GeistMono', 'Fira Code', monospace;
 
   /* ── Shadows ── */

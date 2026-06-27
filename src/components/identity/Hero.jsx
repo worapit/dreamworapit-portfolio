@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import RotatingWord from './RotatingWord';
 
 /**
  * Hero section — full-viewport intro with loader-coordinated entrance.
@@ -9,15 +10,27 @@ import { useReducedMotion } from '../../hooks/useReducedMotion';
  */
 export default function Hero() {
   const prefersReduced = useReducedMotion();
-  const [scrolled, setScrolled] = useState(false);
+  const indicatorRef = useRef(null);
 
   useEffect(() => {
-    // Must toggle both ways — scrolling back to the top has to bring the
-    // CTA back, not just hide it once and never re-show it.
+    // Direct inline-style toggle (not a CSS class) — the entrance
+    // animation also drives this element's opacity via GSAP inline
+    // styles, which would otherwise out-specificity a CSS class toggle.
+    // Using the same mechanism (inline style) for both means whichever
+    // runs last simply wins, with no specificity fight.
+    // Intentionally does NOT run on mount — at scrollY 0 there is nothing
+    // to do, and firing immediately would stomp the entrance animation's
+    // own opacity:0 starting state before it gets a chance to play.
+    let wasHidden = false;
     const onScroll = () => {
-      setScrolled(window.scrollY > window.innerHeight * 0.6);
+      const hide = window.scrollY > window.innerHeight * 0.6;
+      if (hide === wasHidden) return;
+      wasHidden = hide;
+      const el = indicatorRef.current;
+      if (!el) return;
+      el.style.opacity = hide ? '0' : '1';
+      el.style.pointerEvents = hide ? 'none' : '';
     };
-    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -80,47 +93,56 @@ export default function Hero() {
         <div className="g12">
           <div className="hero__body">
 
-            {/* Identity meta */}
-            <div className="hero__identity" data-gsap="" data-hero-avail="">
+            {/* 1. Name */}
+            <div className="hero__identity" data-gsap="" data-hero-name="">
               <span className="hero__name">Worapit M.</span>
-              <span className="hero__location">Based in Thailand</span>
             </div>
 
-            {/* Main headline — two-part sentence */}
+            {/* 2. Headline — exactly three fixed lines; "digital" is a
+                live word carousel (digital/PropTech/EdTech). */}
             <h1 className="hero__h1" id="hero-h1">
-              <span className="hero__line1" data-gsap="" data-hero-line1="">
-                Digital Product Designer,
+              <span className="hero__headline-line" data-gsap="" data-hero-headline="">
+                Creating <RotatingWord />
               </span>
-              <span className="hero__line2" data-gsap="" data-hero-line2="">
-                bridging user needs and business goals through thoughtful experiences.
+              <span className="hero__headline-line" data-gsap="" data-hero-headline="">
+                products that balance
+              </span>
+              <span className="hero__headline-line" data-gsap="" data-hero-headline="">
+                user needs with business goals.
               </span>
             </h1>
 
-            <p className="hero__status" data-gsap="" data-hero-desc="">
-              Currently designing PropTech products at Livinginsider.
-            </p>
-            <p className="hero__opportunity" data-gsap="" data-hero-tag="">
-              ✸ Open to Full-time &amp; Freelance Opportunities
+            {/* 3. Current role — "Livinginsider" is underlined and
+                prepared as a future link; no routing wired up yet.
+                role="button" registers it with the site's custom-cursor
+                hover affordance (native `cursor` is suppressed globally
+                via .has-custom-cursor, so CSS `cursor:pointer` alone
+                wouldn't be visible — see Cursor.jsx's INTERACTIVE list). */}
+            <p className="hero__status" data-gsap="" data-hero-role="">
+              Currently designing PropTech products at{' '}
+              <span className="hero__status-link" role="button">Livinginsider</span>.
             </p>
 
           </div>
         </div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* 5. Scroll cue — minimal, no label, just two chevrons */}
       <a
+        ref={indicatorRef}
         href="#work"
-        className={`hero__indicator${scrolled ? ' hero__indicator--hidden' : ''}`}
-        aria-label="Explore projects"
+        className="hero__indicator"
+        data-gsap=""
+        data-hero-scroll=""
+        aria-label="Scroll to Featured Work"
       >
-        <span className="hero__indicator-txt">Explore Selected Work</span>
         <span className="hero__indicator-chevrons" aria-hidden="true">
           {[0, 1].map((i) => (
             <svg
               key={i}
               className="hero__indicator-chevron"
               style={{ '--i': i }}
-              width="14" height="14" viewBox="0 0 16 16" fill="none"
+              width="16" height="16" viewBox="0 0 16 16" fill="none"
             >
               <path
                 d="M4 6l4 4 4-4"

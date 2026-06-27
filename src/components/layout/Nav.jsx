@@ -10,6 +10,28 @@ const NAV_LINKS = [
   { label: 'About', href: '/about' },
 ];
 
+// Outer alignment row — deliberately WIDER than .wrap/max-w-site (the
+// hero/content container). The navbar reads as more spacious/premium
+// when it isn't pinned to the same narrower measure as body copy; the
+// logo still sits at this row's left edge and the pill at its right
+// edge, just with more breathing room than the hero content below.
+// This row never carries a background, border, or shadow of its own —
+// only the pill does, and only on scroll.
+const ROW_BASE =
+  'relative z-10 flex h-16 w-full max-w-[1600px] items-center justify-between ' +
+  'mx-auto px-6 md:px-12 lg:px-24';
+
+// The action pill — Work / About / theme toggle / Get in Touch. Hugs
+// its own content (not the full row), and is the ONLY element that
+// ever gets a visible surface, and only once scrolled.
+const PILL_BASE =
+  'flex w-fit items-center gap-6 rounded-full border py-2 px-8 ' +
+  'transition-[background-color,border-color,box-shadow] duration-300 ease-std';
+const PILL_AT_REST = 'bg-transparent border-transparent [box-shadow:none]';
+const PILL_SCROLLED =
+  'border-[var(--bd-1)] bg-[var(--glass)] [box-shadow:var(--sh-sm)] ' +
+  'backdrop-blur-xl backdrop-saturate-[1.4]';
+
 export default function Nav() {
   const { toggle, isDark } = useTheme();
   const pathname           = usePathname();
@@ -61,76 +83,119 @@ export default function Nav() {
   return (
     <header role="banner">
       <nav
-        className={`nav${scrolled ? ' stuck' : ''}`}
+        className="nav fixed left-0 right-0 top-[var(--nav-offset)] z-[100]"
         role="navigation"
         aria-label="Main navigation"
       >
-        {/* Alignment container — same max-width/padding as .wrap, so the
-            logo and the pill line up with the page content below. */}
-        <div className="nav__container">
+        {/* Alignment row — same max-width/padding as .wrap. Logo sits at
+            its left edge, the pill at its right edge; the row itself is
+            always transparent, at rest and on scroll alike. */}
+        <div className={ROW_BASE}>
 
-          {/* Logo — always left, links to Home. Plain text, no pill, with
-              a small accent dot that only fully resolves on hover. */}
-          <Link href="/" className="nav__logo" aria-label="w0rapit — Home">
-            <span className="nav__logo-mark">
-              w<span className="nav__logo-accent">0</span>
-            </span>
-            <span className="nav__logo-dot" aria-hidden="true" />
+          {/* Logo — always left, links to Home. Never wrapped in the
+              scrolled pill surface — stays clean and separate at every
+              scroll position. */}
+          <Link
+            href="/"
+            aria-label="w0rapit — Home"
+            className="relative z-10 inline-flex items-center no-underline
+                       transition-transform duration-[240ms] ease-std
+                       motion-safe:hover:-translate-y-px
+                       motion-safe:active:translate-y-0 motion-safe:active:scale-[0.97] motion-safe:active:duration-[80ms]"
+          >
+            {/* Mask-based render (not <img>) so the mark picks up the
+                theme's actual ink color via currentColor/background,
+                instead of a blunt invert() filter — same approach the
+                rest of the site uses for every other icon. */}
+            <span
+              aria-hidden="true"
+              className="block w-10 aspect-[49/30] bg-tx1"
+              style={{
+                WebkitMaskImage: 'url(/w0-logo.svg)',
+                maskImage: 'url(/w0-logo.svg)',
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain',
+                WebkitMaskRepeat: 'no-repeat',
+                maskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskPosition: 'center',
+              }}
+            />
           </Link>
 
           {/* The pill — hugs its own content, sits at the right edge of
-              the alignment container. Surface (bg/border/shadow) only
-              appears once scrolled; see .nav.stuck .nav__pill. */}
-          <div className="nav__pill">
-            <ul className="nav__links" role="list">
-              {NAV_LINKS.map(({ label, href }) => (
-                <li key={label}>
-                  <Link
-                    href={href}
-                    className={`nav__link${isActive(href) ? ' active' : ''}`}
-                    aria-current={isActive(href) ? 'page' : undefined}
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
+              the row. Background/border/blur/shadow only appear here,
+              and only once scrolled. */}
+          <div className={`${PILL_BASE} ${scrolled ? PILL_SCROLLED : PILL_AT_REST}`}>
+            {/* Nav links group — its own 8px padding, independent of the
+                action wrapper's 8px/28px padding around the whole pill. */}
+            <ul className="hidden md:flex items-center gap-6 list-none p-2" role="list">
+              {NAV_LINKS.map(({ label, href }) => {
+                const active = isActive(href);
+                return (
+                  <li key={label} className="flex">
+                    <Link
+                      href={href}
+                      aria-current={active ? 'page' : undefined}
+                      className={`relative text-sm font-medium no-underline transition-colors duration-150
+                        after:absolute after:-bottom-0.5 after:left-0 after:h-px after:bg-accent after:content-['']
+                        after:transition-[width] after:duration-[220ms] after:ease-expo
+                        ${active
+                          ? 'text-accent after:w-full'
+                          : 'text-tx2 hover:text-tx1 after:w-0 hover:after:w-full'}`}
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
 
-            <span className="nav__divider" aria-hidden="true" />
+            <span aria-hidden="true" className="hidden md:block h-[18px] w-px shrink-0 bg-[var(--bd-2)]" />
 
-            <div className="nav__utility">
+            <div className="flex items-center gap-2.5">
               {/* Theme toggle */}
               <button
-                className="theme-btn"
                 onClick={toggle}
                 type="button"
                 aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 aria-pressed={isDark}
+                className="flex h-[34px] w-[34px] items-center justify-center rounded-full border border-[var(--bd-2)]
+                           text-tx2 transition-colors duration-[180ms]
+                           hover:border-[var(--bd-3)] hover:text-tx1 hover:bg-surface-2"
               >
-                <svg className="icon-sun" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <svg className="block dark:hidden h-[14px] w-[14px]" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3"/>
                   <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M11.89 4.11l1.06-1.06M3.05 12.95l1.06-1.06"
                     stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
                 </svg>
-                <svg className="icon-moon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <svg className="hidden dark:block h-[14px] w-[14px]" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5z"
                     stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
                 </svg>
               </button>
 
-              {/* Desktop CTA */}
-              <Link href="/#contact" className="btn btn--pr btn--sm nav__cta">
-                Get In Touch
+              {/* Desktop CTA — primary action. Hash link to the Home
+                  page's contact section: same-page smooth-scroll on
+                  Home (global `scroll-behavior:smooth`), or navigate
+                  to "/" and land on #contact from any other page. */}
+              <Link
+                href="/#contact"
+                className="btn btn--pr btn--sm h-9 px-[18px]"
+              >
+                Get in Touch
               </Link>
 
               {/* Hamburger */}
               <button
-                className="hamburger"
                 type="button"
                 onClick={() => setOpen((v) => !v)}
                 aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
                 aria-expanded={open}
                 aria-controls="mobile-nav"
+                className="flex md:hidden h-[34px] w-[34px] items-center justify-center rounded-full border border-[var(--bd-2)]
+                           text-tx2 transition-colors duration-[180ms]
+                           hover:border-[var(--bd-3)] hover:text-tx1"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M2 4h12M2 8h12M2 12h12"
@@ -145,28 +210,37 @@ export default function Nav() {
       {/* Mobile nav panel */}
       <div
         id="mobile-nav"
-        className={`mobile-nav${open ? ' open' : ''}`}
         role="dialog"
         aria-label="Mobile navigation"
         aria-modal="true"
         aria-hidden={!open}
+        className={`mobile-nav block md:hidden fixed left-0 right-0 top-[var(--nav-total-h)] z-[99]
+                    border-b border-[var(--bd-1)] bg-[var(--glass)] p-3 backdrop-blur-[22px]
+                    transition-transform duration-300 ease-expo
+                    ${open ? 'translate-y-0' : '-translate-y-[calc(100%+var(--nav-total-h)+8px)]'}`}
       >
-        <ul className="mobile-nav__links" role="list">
+        <ul className="flex flex-col gap-[2px] list-none" role="list">
           {NAV_LINKS.map(({ label, href }) => (
             <li key={label}>
               <Link
                 href={href}
-                className={`mobile-nav__link${isActive(href) ? ' active' : ''}`}
+                aria-current={isActive(href) ? 'page' : undefined}
                 onClick={() => setOpen(false)}
+                className="block rounded-2xl px-4 py-3 text-[0.9375rem] font-medium text-tx2 no-underline
+                           transition-colors duration-[140ms] hover:text-tx1 hover:bg-surface-2"
               >
                 {label}
               </Link>
             </li>
           ))}
         </ul>
-        <div className="mobile-nav__footer">
-          <Link href="/#contact" className="btn btn--pr btn--w" onClick={() => setOpen(false)}>
-            Get In Touch
+        <div className="mt-3 border-t border-[var(--bd-1)] pt-3">
+          <Link
+            href="/#contact"
+            className="btn btn--pr btn--w"
+            onClick={() => setOpen(false)}
+          >
+            Get in Touch
           </Link>
         </div>
       </div>

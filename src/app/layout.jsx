@@ -1,4 +1,4 @@
-import { Inter, Manrope } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import '../styles/globals.css';
 import { generateMeta } from '../lib/seo';
 import { personSchema, websiteSchema } from '../lib/jsonld';
@@ -7,17 +7,24 @@ import Footer from '../components/layout/Footer';
 import PageWrapper from '../components/layout/PageWrapper';
 import Cursor from '../components/ui/Cursor';
 
-/* ── Fonts via next/font (zero layout shift, self-hosted automatically) ── */
-const inter = Inter({
+/* ── Font via next/font (zero layout shift, self-hosted automatically) ──
+   DM Sans is the single global sans-serif — used for both the "display"
+   and "body" type roles (--f-display / --f-body both resolve to it).
+   The editorial serif (Tiempos Text, loaded via @font-face in globals.css)
+   is unrelated and untouched.
+   IMPORTANT: the variable className goes on <html>, not <body>. Custom
+   properties that reference another custom property (like --f-body
+   referencing --font-dm-sans) resolve using the value visible AT THEIR
+   OWN declaring element — :root/<html> — not at whatever descendant
+   happens to inherit it. Defining --font-dm-sans only on <body> left
+   --font-geist/--font-manrope unresolved at :root, which silently made
+   every var(--f-body)/var(--f-display) usage site-wide fall back to
+   Tailwind's Preflight `ui-sans-serif` default. */
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  variable: '--font-geist',
+  variable: '--font-dm-sans',
   display: 'swap',
-});
-const manrope = Manrope({
-  subsets: ['latin'],
-  variable: '--font-manrope',
-  display: 'swap',
-  weight: ['300', '400', '500', '600', '700', '800'],
+  weight: ['400', '500', '600', '700', '800'],
 });
 
 /* ── Site-wide metadata ── */
@@ -30,7 +37,7 @@ export default function RootLayout({ children }) {
      * inline <script> sets data-theme on <html> before React hydrates,
      * causing a mismatch between server ("") and client ("dark"/"light").
      */
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={dmSans.variable}>
       <head>
         {/*
          * ANTI-FLASH THEME SCRIPT
@@ -59,7 +66,7 @@ export default function RootLayout({ children }) {
         />
       </head>
 
-      <body className={`${inter.variable} ${manrope.variable}`}>
+      <body>
         {/* Accessibility: skip to main content */}
         <a href="#main" className="skip-link">Skip to main content</a>
 

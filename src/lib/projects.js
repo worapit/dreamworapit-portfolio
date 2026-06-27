@@ -272,6 +272,20 @@ export function getProject(slug) {
   return PROJECTS.find((p) => p.slug === slug);
 }
 
+// Shorter, stable DOM ids for the Home page's project sections — used
+// by both ProjectCard (sets the id) and ProjectProgress (queries it),
+// so the two can never drift out of sync.
+const SECTION_ID_OVERRIDES = {
+  'livinginsider-design-system': 'design-system',
+  'puff-and-pine': 'puff-pi',
+  scoreobeplus: 'scoreobe',
+};
+
+/** DOM id for a project's Home page section, e.g. "project-mystock". */
+export function getProjectSectionId(slug) {
+  return `project-${SECTION_ID_OVERRIDES[slug] || slug}`;
+}
+
 /** All slugs — used in generateStaticParams. */
 export function getAllSlugs() {
   return PROJECTS.map((p) => ({ slug: p.slug }));

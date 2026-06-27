@@ -50,6 +50,43 @@ export async function fadeUp(targets, {
 }
 
 /**
+ * Scale + fade entrance triggered on scroll — for the full-screen
+ * project case sections. Deliberately restrained (no slide/rotation):
+ * just scale 0.92 → 1 and opacity 0 → 1, once, as the card enters view.
+ *
+ * @param {Element} target
+ * @param {{ start?: string; fromScale?: number; duration?: number }} [opts]
+ * @returns {Promise<() => void>} cleanup
+ */
+export async function scaleReveal(target, {
+  start     = 'top 82%',
+  fromScale = 0.92,
+  duration  = 0.7,
+} = {}) {
+  if (!target) return () => {};
+  const { gsap, ScrollTrigger } = await getGSAP();
+
+  gsap.set(target, { opacity: 0, scale: fromScale });
+
+  const trigger = ScrollTrigger.create({
+    trigger: target,
+    start,
+    once: true,
+    onEnter() {
+      gsap.to(target, {
+        opacity: 1, scale: 1, duration, ease: 'power2.out',
+        clearProps: 'transform',
+      });
+    },
+  });
+
+  return () => {
+    trigger.kill();
+    gsap.set(target, { clearProps: 'all' });
+  };
+}
+
+/**
  * Staggered reveal for a grid of children.
  *
  * @param {Element} container

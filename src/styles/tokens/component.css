@@ -50,7 +50,13 @@
   --proj-thumb-ratio: 16 / 9;
 
   /* ── Contact heading ── */
-  --fs-contact-heading: 4.5rem; /* 72px */
+  --fs-contact-heading: 4rem; /* 64px */
+
+  /* ── Hero headline ──
+     Fluid scale, not discrete breakpoints — the vw component carries it
+     smoothly through tablet widths between the mobile floor (no overflow)
+     and the 88px desktop ceiling. */
+  --fs-hero-headline: clamp(2.25rem, 7vw, 5.5rem); /* 36px mobile → 88px desktop */
 
   /* ── Loader ── */
   --loader-font-sz: clamp(2.5rem, 7vw, 4.5rem);
