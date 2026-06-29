@@ -3,6 +3,11 @@
 ═══════════════════════════════════════════════════ */
 
 /* Layout helpers */
+/* Top offset for the fixed nav on every page root that isn't already
+   inside its own layout shell (Home's Hero handles its own; everything
+   else needs this one value) — single source instead of five identical
+   inline `style={{ paddingTop: 'var(--nav-h)' }}` copies. */
+.pg-top     { padding-top:var(--nav-h); }
 .wrap       { width:100%; max-width:var(--site-w); margin-inline:auto; padding-inline:var(--px-sm); }
 .wrap--sm   { max-width:var(--col-w); }
 /* Responsive padding — mobile:16px  tablet:24px  desktop:80px */
@@ -32,7 +37,7 @@
 .eyebrow {
   display:inline-flex; align-items:center; gap:.625rem;
   font-size:.6875rem; font-weight:700; letter-spacing:.10em; text-transform:uppercase;
-  color:var(--c-accent); margin-bottom:.875rem;
+  color:var(--tx-accent); margin-bottom:.875rem;
 }
 .eyebrow::before { content:''; display:block; width:20px; height:1px; background:var(--c-accent); }
 

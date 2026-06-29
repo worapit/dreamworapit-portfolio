@@ -37,7 +37,7 @@ const TESTIMONIALS = [
 
 export default function AboutPage() {
   return (
-    <main style={{ paddingTop: 'var(--nav-h)' }}>
+    <main className="pg-top">
       <div className="wrap">
         <div className="about-pg">
 
@@ -132,7 +132,7 @@ export default function AboutPage() {
               <p className="about-pg__cta-text">
                 Interested in working together?
               </p>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <div className="about-pg__cta-actions">
                 <a href="mailto:hello@w0rapit.com" className="btn btn--pr">
                   Send a Message
                 </a>

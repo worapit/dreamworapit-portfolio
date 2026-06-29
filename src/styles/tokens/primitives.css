@@ -46,13 +46,21 @@
   --ease-out-quart:cubic-bezier(0.25, 1, 0.5, 1);
   --ease-decel:    cubic-bezier(0, 0, 0.2, 1);
 
-  /* ── Duration ── */
+  /* ── Duration ──
+     Named steps for new work; the --dur-NNN aliases below preserve
+     exact legacy timings already in use at multiple call sites
+     (kept as their own tokens rather than snapped to the nearest
+     named step, since shifting the number would change the motion
+     feel, however slightly). ── */
   --dur-instant: 80ms;
   --dur-fast:   150ms;
   --dur-base:   200ms;
   --dur-slow:   300ms;
   --dur-xslow:  500ms;
   --dur-page:   600ms;
+  --dur-220: 220ms; --dur-240: 240ms; --dur-250: 250ms;
+  --dur-260: 260ms; --dur-280: 280ms; --dur-320: 320ms;
+  --dur-340: 340ms; --dur-350: 350ms; --dur-550: 550ms;
 
   /* ── Stagger ── */
   --stagger-base: 60ms;
@@ -61,6 +69,7 @@
   /* ── Border radius ── */
   --r-xs: 4px; --r-sm: 6px;  --r-md: 8px;
   --r-lg: 12px; --r-xl: 16px; --r-2xl: 20px; --r-3xl: 24px; --r-full: 9999px;
+  --r-circle: 50%;
 
   /* ── Layout ── */
   --nav-h:   64px;
@@ -78,6 +87,36 @@
   --sp-12: 48px; --sp-16: 64px; --sp-20: 80px;
 
   /* ── Z-index scale ── */
+  --z-1: 1; --z-2: 2;
   --z-base:   0; --z-raised: 10; --z-sticky: 50;
-  --z-nav:    100; --z-modal: 200; --z-loader: 9999;
+  --z-nav:    100; --z-modal: 200; --z-cursor: 9998; --z-loader: 9999;
+
+  /* ── Font-size scale — discrete sizes reused across components.
+     Fluid/component-specific sizes (hero headline, section titles,
+     etc.) stay as clamp() values on their own component tokens. ── */
+  --fs-2xs: 0.625rem;  /* 10px — micro labels (tags, badges) */
+  --fs-xs:  0.6875rem; /* 11px — eyebrow, placeholder labels */
+  --fs-sm:  0.75rem;   /* 12px — captions */
+  --fs-ssm: 0.8125rem; /* 13px */
+  --fs-base:0.875rem;  /* 14px — body small / buttons */
+  --fs-md:  0.9375rem; /* 15px — body */
+  --fs-lg:  1rem;      /* 16px — body default */
+  --fs-xl:  1.125rem;  /* 18px */
+  --fs-2xl: 1.25rem;   /* 20px */
+  --fs-3xl: 5rem;      /* 80px — display glyphs (quote marks) */
+
+  /* ── Border width scale ── */
+  --bw-1: 1px;
+  --bw-2: 1.5px;
+
+  /* ── Breakpoints — reference only (CSS custom properties cannot be
+     read inside @media conditions). Mirrors Tailwind's default scale
+     where used; a few custom in-between values exist intentionally.
+     Single source of truth for JS equivalents: src/lib/breakpoints.js
+       480   — proj-card mobile floor
+       600   — testimonial card mobile floor
+       640   — Tailwind `sm`
+       767/768 — Tailwind `md` boundary (max/min pair)
+       860   — contact headline <br> breakpoint
+       1024/1025 — Tailwind `lg` boundary (max/min pair) ── */
 }

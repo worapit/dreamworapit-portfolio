@@ -46,7 +46,7 @@ export default function Hero() {
       return;
     }
 
-    let tl;
+    let cleanup = () => {};
     let cancelled = false;
     let fallbackId = null;
 
@@ -54,7 +54,7 @@ export default function Hero() {
       if (cancelled) return;
       const { heroReveal } = await import('../../styles/motion/presets');
       if (cancelled) return;
-      tl = await heroReveal();
+      cleanup = await heroReveal();
     };
 
     const onLoaded = () => {
@@ -77,7 +77,7 @@ export default function Hero() {
       cancelled = true;
       window.removeEventListener('w0rapit:loaded', onLoaded);
       if (fallbackId) window.clearTimeout(fallbackId);
-      tl?.kill?.();
+      cleanup();
     };
   }, [prefersReduced]);
 
@@ -89,7 +89,7 @@ export default function Hero() {
         <div className="hero__glow-tl" />
       </div>
 
-      <div className="wrap" style={{ position: 'relative', zIndex: 2, width: '100%' }}>
+      <div className="wrap hero__wrap">
         <div className="g12">
           <div className="hero__body">
 

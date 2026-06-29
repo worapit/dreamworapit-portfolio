@@ -1,5 +1,23 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
+
+const QUERY = '(prefers-reduced-motion: reduce)';
+
+function subscribe(callback) {
+  const mq = window.matchMedia(QUERY);
+  mq.addEventListener('change', callback);
+  return () => mq.removeEventListener('change', callback);
+}
+
+function getSnapshot() {
+  return window.matchMedia(QUERY).matches;
+}
+
+// SSR/first-paint default — matches the previous useState(false) initial
+// value exactly, so hydration never mismatches the server-rendered markup.
+function getServerSnapshot() {
+  return false;
+}
 
 /**
  * Returns true when the user has requested reduced motion.
@@ -8,16 +26,5 @@ import { useState, useEffect } from 'react';
  * @returns {boolean}
  */
 export function useReducedMotion() {
-  const [prefersReduced, setPrefersReduced] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReduced(mq.matches);
-
-    const onChange = (e) => setPrefersReduced(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-
-  return prefersReduced;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

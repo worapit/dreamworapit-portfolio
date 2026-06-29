@@ -15,12 +15,19 @@ const TRANSITION_CLASS = 'theme-tx';
 export function useTheme() {
   const [theme, setTheme] = useState('dark');
 
-  // Initialise from localStorage or system preference
+  // Initialise from localStorage or system preference.
+  // Not a useSyncExternalStore candidate: this syncs from three sources
+  // (localStorage, matchMedia, and the resolved DOM attribute) and
+  // `apply()` itself writes to the DOM/localStorage as a side effect —
+  // useSyncExternalStore's snapshot getter must be a pure read, so it
+  // can't model "resolve + apply + persist" in one step the way this
+  // mount-time sync genuinely needs to.
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     const initial = stored
       || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     apply(initial);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from external storage/matchMedia, not derivable from props/state
     setTheme(initial);
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)');

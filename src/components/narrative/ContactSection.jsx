@@ -16,10 +16,9 @@ export default function ContactSection() {
     let cancelled = false;
 
     (async () => {
-      const { default: gsap } = await import('gsap');
-      const { ScrollTrigger }  = await import('gsap/ScrollTrigger');
+      const { getGSAP } = await import('../../styles/motion/scroll');
+      const { gsap, ScrollTrigger } = await getGSAP();
       if (cancelled) return;
-      gsap.registerPlugin(ScrollTrigger);
 
       const headline = headlineRef.current;
       const avail   = availRef.current;

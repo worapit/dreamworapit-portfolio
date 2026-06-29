@@ -13,12 +13,17 @@
   --glass:   rgba(24,24,22,0.88);
   --overlay: rgba(15,15,14,0.78);
 
-  /* ── Text — warm off-white, minimal brown tint ── */
+  /* ── Text — warm off-white, minimal brown tint ──
+     tx-3 lightened from #706866 (3.53:1 on --bg, 3.27:1 on --s1 —
+     both fail WCAG AA 4.5:1) to clear both. */
   --tx-1:    #F4EFE7;
   --tx-2:    #B8AEA2;
-  --tx-3:    #706866;
+  --tx-3:    #8C8684;
   --tx-4:    #3E3B38;
   --tx-link: #C8A882;
+  /* Text-safe accent for dark mode — see semantic.css for why this
+     exists separately from --c-accent. */
+  --tx-accent: #AE7855;
 
   /* ── Borders — translucent off-white, no solid brown ── */
   --bd-1: rgba(244,239,231,0.08);
@@ -45,6 +50,10 @@
   /* ── Tag backgrounds ── */
   --tag-a-bg: rgba(166,106,67,0.12);
   --tag-m-bg: rgba(244,239,231,0.05);
+
+  /* ── Placeholder art ── */
+  --c-placeholder-bg: var(--s2);
+  --c-placeholder-fg: rgba(255,255,255,0.18);
 
   color-scheme: dark;
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 /**
  * Custom circular cursor — desktop / fine-pointer only.
@@ -9,9 +10,14 @@ import { useRef, useEffect } from 'react';
  */
 export default function Cursor() {
   const cursorRef = useRef(null);
+  const prefersReduced = useReducedMotion();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Purely decorative — a shape continuously chasing the pointer is
+    // exactly the kind of motion prefers-reduced-motion exists to opt
+    // out of, and the native cursor already does this job functionally.
+    if (prefersReduced) return;
     // Only activate on devices with a precise pointer (mouse/trackpad)
     if (!window.matchMedia('(pointer: fine)').matches) return;
 
@@ -55,7 +61,7 @@ export default function Cursor() {
       document.removeEventListener('mouseover', onOver);
       cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [prefersReduced]);
 
   return <div ref={cursorRef} className="custom-cursor" aria-hidden="true" />;
 }

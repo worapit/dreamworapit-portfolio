@@ -9,39 +9,36 @@
  */
 
 /**
- * Loader letter-reveal → hero entrance.
- * Fires the 'w0rapit:loaded' custom event when the loader exits.
+ * Loader letter-reveal → hero entrance. Animation only — the caller
+ * (PageWrapper) owns side effects (hiding the loader, body scroll
+ * lock, the 'w0rapit:loaded' event) via `onComplete`, so there's a
+ * single place that decides what "done" means.
  *
+ * @param {HTMLElement} loaderEl
  * @param {{ onComplete?: () => void }} [opts]
  * @returns {Promise<() => void>} cleanup function
  */
-export async function runLoader({ onComplete } = {}) {
+export async function runLoader(loaderEl, { onComplete } = {}) {
+  if (!loaderEl) return () => {};
   const { default: gsap } = await import('gsap');
 
-  gsap.set('[data-loader-char]', { y: 28, filter: 'blur(10px)', opacity: 0 });
+  const chars = loaderEl.querySelectorAll('[data-loader-char]');
+  const logo  = loaderEl.querySelector('[data-loader-logo]');
 
-  const tl = gsap.timeline({
-    onComplete() {
-      window.dispatchEvent(new CustomEvent('w0rapit:loaded'));
-      onComplete?.();
-    },
-  });
+  gsap.set(chars, { y: 28, filter: 'blur(10px)', opacity: 0 });
 
-  tl.to('[data-loader-char]', {
+  const tl = gsap.timeline({ onComplete });
+  tl.to(chars, {
     opacity: 1, y: 0, filter: 'blur(0px)',
     duration: 0.55, stagger: 0.09, ease: 'power3.out',
   })
-    .to('[data-loader-logo]', {
+    .to(logo, {
       scale: 1.04, duration: 0.28,
       ease: 'power2.inOut', yoyo: true, repeat: 1,
     }, '+=0.28')
-    .to('[data-loader]', {
+    .to(loaderEl, {
       opacity: 0, duration: 0.55, ease: 'power2.inOut',
-      onComplete() {
-        const el = document.querySelector('[data-loader]');
-        if (el) { el.style.visibility = 'hidden'; el.style.pointerEvents = 'none'; }
-        gsap.set('[data-loader-char]', { clearProps: 'filter' });
-      },
+      onComplete: () => gsap.set(chars, { clearProps: 'filter' }),
     }, '+=0.14');
 
   return () => tl.kill();

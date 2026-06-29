@@ -4,6 +4,8 @@ import { useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { getProjectSectionId } from '../../lib/projects';
+import { BREAKPOINT_MD } from '../../lib/breakpoints';
+import ProjectPlaceholder from './ProjectPlaceholder';
 
 export default function ProjectCard({
   title, editorialMeta, headline, slug, featured = false,
@@ -12,8 +14,11 @@ export default function ProjectCard({
   const artRef  = useRef(null);
   const prefersReduced = useReducedMotion();
 
-  // Scroll reveal: scale 0.92 → 1 + fade in, once, as the section enters
-  // the viewport — restrained on purpose (see scaleReveal in scroll.js).
+  // Scroll reveal: scale 0.985 → 1, opacity 0.9 → 1, y 24 → 0, once,
+  // the first time the card scrolls into view. Independent of scroll
+  // position/snap state otherwise — it doesn't care how the card got
+  // into view (native scroll, scroll-snap settling, or a dot click),
+  // it only ever fires the one time. See scaleReveal in scroll.js.
   useEffect(() => {
     if (prefersReduced || !cardRef.current) return;
     let cancelled = false;
@@ -33,7 +38,7 @@ export default function ProjectCard({
   // effects on the overlay text/arrow, which all key off `.proj-card:hover`.
   useEffect(() => {
     if (prefersReduced || typeof window === 'undefined') return;
-    if (window.innerWidth < 768) return;
+    if (window.innerWidth < BREAKPOINT_MD) return;
     let cancelled = false;
     let cleanup = () => {};
     import('../../styles/motion/presets').then(({ hoverZoom }) => {
@@ -58,20 +63,7 @@ export default function ProjectCard({
           aria-label={`View ${title} case study`}
         >
           <div ref={artRef} className="proj-card__art">
-            <div className="proj-placeholder" aria-hidden="true">
-              <svg width="36" height="36" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-                <rect x="2" y="5" width="28" height="22" rx="3"
-                  stroke="currentColor" strokeWidth="1.4" />
-                <circle cx="10" cy="13" r="2.5"
-                  stroke="currentColor" strokeWidth="1.4" />
-                <path
-                  d="M2 22l7-6 5 5 4.5-6L28 22"
-                  stroke="currentColor" strokeWidth="1.4"
-                  strokeLinejoin="round" strokeLinecap="round"
-                />
-              </svg>
-              <span className="proj-placeholder__label">Project Screenshot</span>
-            </div>
+            <ProjectPlaceholder size={36} />
           </div>
 
           {/* Permanent bottom shade — readability for the overlay text,

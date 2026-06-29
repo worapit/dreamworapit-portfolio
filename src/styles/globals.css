@@ -29,10 +29,53 @@
   font-weight: 700; font-style: normal; font-display: swap;
 }
 
-/* 2. Tailwind */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* 2. Tailwind v4 — CSS-first config. Mirrors the old tailwind.config.js
+   theme.extend 1:1 (same generated utility names, same values), so
+   every `bg-accent` / `text-tx1` / `rounded-2xl` / `ease-std` etc.
+   call site needs zero changes. */
+@import 'tailwindcss';
+
+@theme {
+  /* Overrides Preflight's default sans stack (not additive — same
+     effect as the old top-level `fontFamily.sans` override). */
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+
+  --color-primary:        var(--c-primary);
+  --color-primary-hover:  var(--c-primary-h);
+  --color-accent:         var(--c-accent);
+  --color-accent-hover:   var(--c-accent-h);
+  --color-accent-text:    var(--tx-accent);
+  --color-success:        var(--c-success);
+  --color-bg:             var(--bg);
+  --color-surface:        var(--s1);
+  --color-surface-2:      var(--s2);
+  --color-tx1:            var(--tx-1);
+  --color-tx2:            var(--tx-2);
+  --color-tx3:            var(--tx-3);
+
+  --font-display: var(--f-display);
+  --font-body:    var(--f-body);
+
+  --max-w-site:    1280px;
+  --max-w-content: 760px;
+
+  --radius-full: 9999px;
+  --radius-2xl:  20px;
+
+  --shadow-card:   var(--sh-card);
+  --shadow-lift:   var(--sh-lift);
+  --shadow-glow-s: var(--glow-s);
+  --shadow-glow-m: var(--glow-m);
+
+  --ease-expo:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-std:    cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark mode keyed off [data-theme="dark"] on <html> (not prefers-color-
+   scheme, not a `.dark` class) — same selector the old `darkMode:
+   ['class', '[data-theme="dark"]']` config resolved to. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* 3. Reset & base */
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -51,7 +94,7 @@ body {
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
-  transition:background-color 280ms var(--ease-std), color 280ms var(--ease-std);
+  transition:background-color var(--dur-280) var(--ease-std), color var(--dur-280) var(--ease-std);
 }
 h1,h2,h3,h4,h5,h6 { font-family:var(--f-display); color:var(--tx-1); line-height:1.1; }
 a { color:var(--tx-link); text-decoration:none; transition:color 140ms; }
@@ -70,7 +113,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   background:var(--bg);
   display:flex; align-items:center; justify-content:center;
   pointer-events:all;
-  transition:opacity 550ms var(--ease-std);
+  transition:opacity var(--dur-550) var(--ease-std);
 }
 .loader__logo {
   display:flex; align-items:baseline; gap:0.01em;
@@ -92,22 +135,22 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 /* 6. Buttons */
 .btn {
   display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
-  padding:.6875rem 1.625rem;
+  padding:var(--btn-pad-md);
   font-family:var(--f-body); font-size:var(--btn-font-sz); font-weight:var(--btn-font-w);
   letter-spacing:var(--btn-tracking); line-height:1;
-  border-radius:var(--btn-radius); border:1px solid transparent;
+  border-radius:var(--btn-radius); border:var(--bw-1) solid transparent;
   text-decoration:none; cursor:pointer; white-space:nowrap;
-  transition:all 200ms var(--ease-std); will-change:transform;
+  transition:all var(--dur-base) var(--ease-std); will-change:transform;
 }
 .btn:active { transform:scale(.97) translateY(1px); transition-duration:70ms; }
-.btn--pr  { background:var(--c-primary);  color:#fff; border-color:var(--c-primary); }
-.btn--pr:hover { background:var(--c-primary-h); border-color:var(--c-primary-h); box-shadow:var(--glow-cta); color:#fff; }
+.btn--pr  { background:var(--c-primary);  color:var(--c-on-accent); border-color:var(--c-primary); }
+.btn--pr:hover { background:var(--c-primary-h); border-color:var(--c-primary-h); box-shadow:var(--glow-cta); color:var(--c-on-accent); }
 .btn--out { background:transparent; color:var(--tx-1); border-color:var(--bd-3); }
 .btn--out:hover { border-color:var(--c-accent); background:var(--bd-a); color:var(--tx-1); }
 .btn--ghost { background:transparent; color:var(--tx-2); }
 .btn--ghost:hover { color:var(--tx-1); background:var(--s2); }
-.btn--lg { padding:.875rem 2rem; font-size:.9375rem; }
-.btn--sm { padding:.375rem .875rem; font-size:.8125rem; }
+.btn--lg { padding:var(--btn-pad-lg); font-size:var(--btn-font-sz-lg); }
+.btn--sm { padding:var(--btn-pad-sm); font-size:var(--btn-font-sz-sm); }
 .btn--w  { width:100%; justify-content:center; }
 .btn__icon { width:15px; height:15px; flex-shrink:0; }
 
@@ -116,7 +159,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   background:rgba(255,255,255,0.08);
   backdrop-filter:blur(24px) saturate(1.6);
   -webkit-backdrop-filter:blur(24px) saturate(1.6);
-  border:1px solid rgba(255,255,255,0.12);
+  border:var(--bw-1) solid rgba(255,255,255,0.12);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.10),
     inset 0 -1px 0 rgba(0,0,0,0.08),
@@ -140,7 +183,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   background:rgba(255,255,255,0.68);
   backdrop-filter:blur(20px) saturate(1.4);
   -webkit-backdrop-filter:blur(20px) saturate(1.4);
-  border:1px solid rgba(0,0,0,0.08);
+  border:var(--bw-1) solid rgba(0,0,0,0.08);
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.85), 0 4px 20px rgba(0,0,0,0.07);
 }
 [data-theme="light"] .btn-glass:hover {
@@ -157,6 +200,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   overflow:hidden;
   padding-top:var(--nav-total-h); padding-bottom:5rem;
 }
+.hero__wrap { position:relative; z-index:var(--z-2); width:100%; }
 .hero__bg { position:absolute; inset:0; pointer-events:none; }
 .hero__glow-br {
   position:absolute; bottom:-8%; right:-4%; width:60vw; height:58vh;
@@ -182,7 +226,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   margin-bottom:1.25rem;
 }
 .hero__name {
-  font-size:1.125rem; /* 18px — primary eyebrow label */
+  font-size:var(--fs-xl); /* 18px — primary eyebrow label */
   font-weight:500;
   letter-spacing:.08em; text-transform:uppercase; color:var(--tx-1);
 }
@@ -196,13 +240,20 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   letter-spacing:-.02em; line-height:1.02; color:var(--tx-1);
   white-space:nowrap; /* exact 3-line break — see max-width above */
 }
-@media(max-width:640px){
-  .hero__headline-line { white-space:normal; } /* avoid overflow on small screens */
+/* Matches .hero__body's own breakpoint above, not an independent
+   640px guess — hero__body drops from a 10-col span to 8 cols at
+   1024px, so the nowrap 3-line treatment loses real width there too.
+   The old 640px threshold left a silent-clipping gap between
+   641-1024px: .hero is overflow:hidden, so any line wider than its
+   shrunken column would just disappear off-edge with no scrollbar to
+   reveal it, instead of wrapping. */
+@media(max-width:1024px){
+  .hero__headline-line { white-space:normal; }
 }
 /* Status line — plain text, no chrome (not a tag/chip/pill) */
 .hero__status {
   margin-top:1.5rem;
-  font-size:1.125rem; /* 18px */
+  font-size:var(--fs-xl); /* 18px */
   font-weight:500; letter-spacing:.01em; line-height:1.5;
   color:var(--tx-3);
   text-decoration:none; cursor:default;
@@ -213,7 +264,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   text-decoration-color:var(--tx-3);
   text-underline-offset:2px;
   cursor:pointer;
-  transition:text-decoration-color 220ms var(--ease-std);
+  transition:text-decoration-color var(--dur-220) var(--ease-std);
 }
 .hero__status-link:hover {
   text-decoration-color:var(--c-accent);
@@ -247,7 +298,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   height:1.1em; line-height:1.1em;
   color:var(--c-accent);
   white-space:nowrap;
-  transition:transform 600ms var(--ease-expo), opacity 600ms var(--ease-expo);
+  transition:transform var(--dur-page) var(--ease-expo), opacity var(--dur-page) var(--ease-expo);
   will-change:transform, opacity;
 }
 .hero__rotating-word-item--entering { transform:translateY(100%);  opacity:0; }
@@ -269,7 +320,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   padding:.875rem 1.25rem;
   border:none; background:none;
   text-decoration:none;
-  transition:opacity 600ms var(--ease-std);
+  transition:opacity var(--dur-page) var(--ease-std);
 }
 .hero__indicator-chevrons {
   display:flex; flex-direction:column; align-items:center;
@@ -278,8 +329,8 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   color:var(--tx-2); opacity:.7;
   margin-top:-5px;
   animation:heroChevronLoop 2.2s ease-in-out infinite;
-  animation-delay:calc(var(--i) * 200ms);
-  transition:color 240ms var(--ease-std), opacity 240ms var(--ease-std);
+  animation-delay:calc(var(--i) * var(--dur-base));
+  transition:color var(--dur-240) var(--ease-std), opacity var(--dur-240) var(--ease-std);
 }
 .hero__indicator-chevron:first-child { margin-top:0; }
 .hero__indicator:hover .hero__indicator-chevron { color:var(--tx-1); opacity:1; }
@@ -301,7 +352,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
      that has to feel intentional here — kept generous. */
   padding-top:clamp(7rem,12vw,11rem);
   padding-bottom:clamp(1.5rem,3vw,3rem);
-  position:relative; z-index:2;
+  position:relative; z-index:var(--z-2);
   border-bottom-left-radius:var(--r-3xl);  /* 24px */
   border-bottom-right-radius:var(--r-3xl);
   /* No box-shadow — the rounded edge is separator enough; a shadow here
@@ -318,8 +369,11 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 /* Full-screen case sections — each project is its own viewport-height
    "slide", edge to edge with no inter-card gap (the old editorial
    whitespace-between-cards approach doesn't apply once each one is a
-   full section in its own right). Pairs with html's scroll-snap-type
-   below so desktop/tablet scrolling settles cleanly on one at a time. */
+   full section in its own right). Native scroll is the source of
+   truth here — CSS scroll-snap (proximity, not mandatory) does the
+   settling; ProjectProgress only adds a passive, debounced nudge after
+   scrolling stops, never a wheel-driven animation. See that component
+   for the soft-settle helper and IntersectionObserver dot tracking. */
 .proj-list {
   display:flex; flex-direction:column;
 }
@@ -332,16 +386,26 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 @media(max-width:767px){
   /* Mobile: never force 100vh — a fixed viewport-height slide can crop
      awkwardly once the browser chrome/address bar resizes. min-height
-     plus normal padding keeps the card large without that risk. */
+     plus normal padding keeps the card large without that risk. No
+     scroll-snap or settle-helper on mobile either (see ProjectProgress
+     and the media query below) — plain native scroll end to end. */
   .proj-section { min-height:auto; padding-block:3rem; }
 }
 @media(min-width:768px){
-  /* min-height, not height — a hard 100vh cap combined with
-     scroll-snap could clip/trap content if a card's overlay text ever
-     needs more room than the viewport gives it. min-height gets the
-     same visual result in the normal case (content never exceeds
-     100vh by design) with no fixed-height downside. */
-  .proj-section { min-height:100vh; scroll-snap-align:start; }
+  .proj-section {
+    min-height:100vh;
+    scroll-snap-align:center;
+    scroll-snap-stop:normal;
+  }
+}
+@media(min-width:768px) and (prefers-reduced-motion:no-preference){
+  /* proximity, not mandatory — mandatory forces scroll to always rest
+     at a snap point, but Hero/Contact have none of their own, which
+     previously caused load-time jumps and a "trapped" feeling at the
+     top/bottom edges of the project list. proximity only engages when
+     scroll is already settling close to a snap point, so it never
+     yanks scroll from Hero or Contact. */
+  html:has(.proj-section) { scroll-snap-type:y proximity; }
 }
 
 /* ── Card — full-bleed image, text lives inside it as an overlay ── */
@@ -351,7 +415,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   height:min(76vh,760px);
   border-radius:var(--r-3xl);        /* 24px */
   overflow:hidden;
-  border:1px solid var(--bd-1);
+  border:var(--bw-1) solid var(--bd-1);
 }
 [data-theme="dark"] .proj-card { border-color:rgba(255,255,255,0.06); }
 @media(max-width:767px){
@@ -371,22 +435,20 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 /* Art layer — GSAP animates transform:scale on this on hover */
 .proj-card__art {
   position:relative; width:100%; height:100%;
-  background:#E5E1DA;
+  background:var(--c-placeholder-bg);
   will-change:transform;
 }
-[data-theme="dark"] .proj-card__art { background:var(--s2); }
 
 /* Placeholder — centered icon + label */
 .proj-placeholder {
   position:absolute; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:.75rem;
-  color:#B5ADA5;
+  color:var(--c-placeholder-fg);
   pointer-events:none; user-select:none;
 }
-[data-theme="dark"] .proj-placeholder { color:rgba(255,255,255,0.18); }
 .proj-placeholder__label {
-  font-size:.6875rem; font-weight:600;
+  font-size:var(--fs-xs); font-weight:600;
   letter-spacing:.10em; text-transform:uppercase;
 }
 
@@ -423,7 +485,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
    description, always legible against the permanent shade. */
 .proj-card__meta {
   font-family:var(--f-body);
-  font-size:.9375rem;                /* 15px */
+  font-size:var(--fs-md);            /* 15px */
   font-weight:600;
   letter-spacing:.02em;
   color:rgba(255,255,255,.74);
@@ -438,12 +500,12 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   letter-spacing:-.01em;
   line-height:1.3;
   color:rgba(255,255,255,.97);
-  transition:transform 340ms var(--ease-expo);
+  transition:transform var(--dur-340) var(--ease-expo);
 }
 .proj-card:hover .proj-card__desc,
 .proj-card:focus-within .proj-card__desc { transform:translateY(-4px); }
 @media(max-width:640px){
-  .proj-card__desc { font-size:1.25rem; }
+  .proj-card__desc { font-size:var(--fs-2xl); }
 }
 
 /* Arrow — bottom-right, icon only, subtle at rest and fuller on hover
@@ -451,12 +513,12 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .proj-card__arrow {
   display:flex; align-items:center; justify-content:center;
   flex-shrink:0; width:2.75rem; height:2.75rem;
-  border-radius:50%;
-  color:#fff;
+  border-radius:var(--r-circle);
+  color:var(--c-on-accent);
   background:rgba(255,255,255,.14);
-  border:1px solid rgba(255,255,255,.22);
+  border:var(--bw-1) solid rgba(255,255,255,.22);
   opacity:.55;
-  transition:opacity 280ms var(--ease-std), transform 340ms var(--ease-expo), background-color 280ms var(--ease-std);
+  transition:opacity var(--dur-280) var(--ease-std), transform var(--dur-340) var(--ease-expo), background-color var(--dur-280) var(--ease-std);
 }
 .proj-card:hover .proj-card__arrow,
 .proj-card:focus-within .proj-card__arrow {
@@ -474,14 +536,14 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   position:fixed;
   top:50%;
   right:48px;
-  z-index:50;
+  z-index:var(--z-sticky);
   transform:translateY(-50%);
   flex-direction:column;
   align-items:center;
   gap:1.25rem;
   opacity:0;
   pointer-events:none;
-  transition:opacity 280ms ease-out;
+  transition:opacity var(--dur-280) ease-out;
 }
 @media(min-width:1024px){
   .proj-progress { display:flex; }
@@ -505,11 +567,11 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   content:'';
   display:block;
   width:8px; height:8px;
-  border-radius:50%;
+  border-radius:var(--r-circle);
   background:var(--tx-3);
   opacity:.4;
-  transition:opacity 260ms var(--ease-std), background-color 260ms var(--ease-std),
-    width 280ms var(--ease-expo), height 280ms var(--ease-expo);
+  transition:opacity var(--dur-260) var(--ease-std), background-color var(--dur-260) var(--ease-std),
+    width var(--dur-280) var(--ease-expo), height var(--dur-280) var(--ease-expo);
 }
 .proj-progress__dot:hover::before { opacity:.7; }
 .proj-progress__dot.is-active::before {
@@ -521,9 +583,9 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   position:absolute;
   inset:0; margin:auto;
   width:0; height:0;
-  border-radius:50%;
-  border:1px solid transparent;
-  transition:width 320ms var(--ease-expo), height 320ms var(--ease-expo), border-color 280ms var(--ease-std);
+  border-radius:var(--r-circle);
+  border:var(--bw-1) solid transparent;
+  transition:width var(--dur-320) var(--ease-expo), height var(--dur-320) var(--ease-expo), border-color var(--dur-280) var(--ease-std);
 }
 .proj-progress__dot.is-active .proj-progress__ring {
   width:30px; height:30px;
@@ -532,25 +594,6 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 @media(prefers-reduced-motion:reduce){
   .proj-progress__dot::before,
   .proj-progress__ring { transition:none; }
-}
-
-/* ── Section-snapping — desktop/tablet only, and only while motion is
-   not reduced. Pairs with .proj-section's scroll-snap-align:start
-   above; Hero/Contact/Footer have no snap-align so they're untouched —
-   normal free scroll there, snapping only kicks in across the project
-   sections themselves. scroll-padding-top (already set on html) keeps
-   each snapped section landing just below the fixed navbar.
-   `proximity`, not `mandatory` — mandatory forces the scroll position
-   to always rest at a snap point, but Hero (and the Work→Contact
-   boundary) have no snap point of their own. That combination is what
-   caused the load-time jump straight into the first project section
-   and the "stuck"/"trapped" feeling at the top and bottom edges of the
-   project list — mandatory was fighting to pull scroll toward the
-   nearest snap target from regions that were never meant to snap.
-   proximity only engages when scroll is already settling very close
-   to a snap point, so it never yanks scroll from somewhere else. ── */
-@media(min-width:768px) and (prefers-reduced-motion:no-preference){
-  html:has(.proj-section) { scroll-snap-type:y proximity; }
 }
 
 /* 10. Testimonials */
@@ -597,7 +640,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .testi-carousel__fade-r {
   position:absolute; top:0; bottom:0;
   width:clamp(48px,7vw,96px);
-  pointer-events:none; z-index:2;
+  pointer-events:none; z-index:var(--z-2);
 }
 .testi-carousel__fade-l {
   left:0;
@@ -610,34 +653,34 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 
 /* ── Individual card ──────────────────────────────────────────── */
 .testi-card {
-  background:var(--s1); border:1px solid var(--bd-2);
+  background:var(--s1); border:var(--bw-1) solid var(--bd-2);
   border-radius:var(--r-2xl); padding:1.875rem;
   display:flex; flex-direction:column; gap:1.5rem;
   position:relative; height:100%;
-  transition:border-color 250ms, box-shadow 250ms;
+  transition:border-color var(--dur-250), box-shadow var(--dur-250);
   will-change:transform;
 }
 .testi-card:hover { border-color:var(--bd-a); box-shadow:var(--glow-s); }
 .testi-card__qmark {
   position:absolute; top:1.125rem; right:1.5rem;
-  font-family:var(--f-display); font-size:5rem; line-height:1;
+  font-family:var(--f-display); font-size:var(--fs-3xl); line-height:1;
   color:var(--bd-2); font-weight:800; user-select:none; pointer-events:none;
 }
-.testi-card__quote { font-size:.9375rem; line-height:1.78; color:var(--tx-2); position:relative; z-index:1; }
+.testi-card__quote { font-size:var(--fs-md); line-height:1.78; color:var(--tx-2); position:relative; z-index:var(--z-1); }
 .testi-card__author { display:flex; align-items:center; gap:.875rem; margin-top:auto; }
 .testi-card__avatar {
-  width:42px; height:42px; border-radius:50%; flex-shrink:0;
+  width:42px; height:42px; border-radius:var(--r-circle); flex-shrink:0;
   display:flex; align-items:center; justify-content:center;
-  font-size:.75rem; font-weight:700; border:1px solid transparent;
+  font-size:var(--fs-sm); font-weight:700; border:var(--bw-1) solid transparent;
 }
-.av-blue   { background:var(--tag-a-bg); color:var(--c-accent); border-color:var(--bd-a); }
-.av-purple { background:rgba(139,115,85,.10); color:#8B7355; border-color:rgba(139,115,85,.22); }
-.av-teal   { background:rgba(122,140,110,.10); color:#5E7052; border-color:rgba(122,140,110,.22); }
+.av-blue   { background:var(--tag-a-bg); color:var(--tx-accent); border-color:var(--bd-a); }
+.av-purple { background:var(--c-avatar-purple-bg); color:var(--c-avatar-purple); border-color:var(--c-avatar-purple-border); }
+.av-teal   { background:var(--c-avatar-teal-bg); color:var(--c-avatar-teal); border-color:var(--c-avatar-teal-border); }
 [data-theme="light"] .av-blue   { background:rgba(166,106,67,.08); }
-[data-theme="light"] .av-purple { background:rgba(139,115,85,.08); }
-[data-theme="light"] .av-teal   { background:rgba(122,140,110,.08); }
-.testi-card__name { font-size:.875rem; font-weight:600; color:var(--tx-1); font-family:var(--f-display); }
-.testi-card__role { font-size:.75rem; color:var(--tx-3); }
+[data-theme="light"] .av-purple { background:var(--c-avatar-purple-bg-lt); }
+[data-theme="light"] .av-teal   { background:var(--c-avatar-teal-bg-lt); }
+.testi-card__name { font-size:var(--fs-base); font-weight:600; color:var(--tx-1); font-family:var(--f-display); }
+.testi-card__role { font-size:var(--fs-sm); color:var(--tx-3); }
 
 /* ═══════════════════════════════════════════════════
    11. Contact section
@@ -648,7 +691,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
      the viewport and centers its content vertically, so it reads as
      the portfolio's final full-screen section. */
   background:var(--bg);
-  position:relative; z-index:1;
+  position:relative; z-index:var(--z-1);
   min-height:100vh;
   display:flex;
   align-items:center;
@@ -691,12 +734,12 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .contact-avail {
   display:inline-flex; align-items:center;
   padding:.625rem 1.125rem;
-  border-radius:999px;
+  border-radius:var(--r-full);
   background:rgba(255,255,255,0.55);
   backdrop-filter:blur(16px) saturate(1.4);
   -webkit-backdrop-filter:blur(16px) saturate(1.4);
-  border:1px solid rgba(166,106,67,0.20);
-  font-size:.875rem; font-weight:500;
+  border:var(--bw-1) solid rgba(166,106,67,0.20);
+  font-size:var(--fs-base); font-weight:500;
   color:var(--tx-2);
   animation:contactAvailBorder 3.4s ease-in-out infinite;
 }
@@ -722,7 +765,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   gap:1.5rem;
 }
 .footer__copy {
-  font-size:.875rem;   /* 14px */
+  font-size:var(--fs-base);   /* 14px */
   color:var(--tx-3);
   font-weight:400;
   line-height:1.5;
@@ -735,14 +778,14 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .footer__social-link {
   display:flex; align-items:center; justify-content:center;
   width:2.5rem; height:2.5rem;
-  border-radius:50%;
+  border-radius:var(--r-circle);
   color:var(--tx-2);
   background:rgba(255,255,255,0.55);
   backdrop-filter:blur(16px) saturate(1.4);
   -webkit-backdrop-filter:blur(16px) saturate(1.4);
-  border:1px solid rgba(166,106,67,0.16);
-  transition:color 220ms var(--ease-std), background-color 220ms var(--ease-std),
-    border-color 220ms var(--ease-std), transform 220ms var(--ease-std);
+  border:var(--bw-1) solid rgba(166,106,67,0.16);
+  transition:color var(--dur-220) var(--ease-std), background-color var(--dur-220) var(--ease-std),
+    border-color var(--dur-220) var(--ease-std), transform var(--dur-220) var(--ease-std);
 }
 [data-theme="dark"] .footer__social-link {
   background:rgba(255,255,255,0.05);
@@ -758,7 +801,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 }
 .footer__social-link svg { width:18px; height:18px; }
 @media(prefers-reduced-motion:reduce){
-  .footer__social-link { transition:color 200ms, background-color 200ms, border-color 200ms; }
+  .footer__social-link { transition:color var(--dur-base), background-color var(--dur-base), border-color var(--dur-base); }
   .footer__social-link:hover { transform:none; }
 }
 
@@ -774,7 +817,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
    the navbar; at rest they sit 72px below it with visible air. */
 .work-section-nav {
   position:sticky; top:var(--nav-total-h);
-  z-index:10;
+  z-index:var(--z-raised);
   margin-top:72px;
   background:var(--bg);
 }
@@ -788,10 +831,10 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .work-section-nav__link {
   display:inline-flex; align-items:center; gap:.25rem;
   padding-block:.75rem;
-  font-size:.875rem; font-weight:500; letter-spacing:.01em;
+  font-size:var(--fs-base); font-weight:500; letter-spacing:.01em;
   color:var(--tx-3); text-decoration:none; white-space:nowrap;
-  border-bottom:1px solid transparent;
-  transition:color 200ms var(--ease-std), border-color 200ms var(--ease-std);
+  border-bottom:var(--bw-1) solid transparent;
+  transition:color var(--dur-base) var(--ease-std), border-color var(--dur-base) var(--ease-std);
 }
 .work-section-nav__link:hover { color:var(--tx-1); }
 .work-section-nav__link--active {
@@ -801,13 +844,18 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 
 /* Section group — "Product Work" / "Case Studies" */
 .work-section { padding-bottom:clamp(3rem,5vw,5rem); }
-.work-section:first-of-type { padding-top:64px; }
+/* Fluid, not a fixed 64px — every other section spacer on this page
+   (and its siblings on /about, /create) scales with clamp(); a frozen
+   px value here was the one spot that didn't, so it sat proportionally
+   too large on small phones and didn't grow on very wide desktops.
+   Ceiling matches the old fixed value exactly at common widths. */
+.work-section:first-of-type { padding-top:clamp(2.5rem,8vw,4rem); }
 /* Strong break before each new section after the first — reads as
    entering a new part of the page, not a continuation of the grid above. */
 .work-section + .work-section {
   margin-top:clamp(6rem,10vw,9rem);
   padding-top:clamp(3.5rem,6vw,5rem);
-  border-top:1px solid var(--bd-1);
+  border-top:var(--bw-1) solid var(--bd-1);
 }
 .work-section__hd {
   margin-bottom:48px;
@@ -839,10 +887,10 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   position:relative; display:block;
   aspect-ratio:4/3;
   border-radius:var(--r-3xl); overflow:hidden;
-  border:1px solid var(--bd-1);
+  border:var(--bw-1) solid var(--bd-1);
   text-decoration:none; color:inherit;
   background:var(--s1);
-  transition:box-shadow 320ms var(--ease-std), border-color 320ms var(--ease-std);
+  transition:box-shadow var(--dur-320) var(--ease-std), border-color var(--dur-320) var(--ease-std);
 }
 [data-theme="dark"] .work-card__link { border-color:rgba(255,255,255,0.06); }
 .work-card__link:hover,
@@ -854,10 +902,9 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .work-card__art {
   position:absolute; inset:0;
   width:100%; height:100%;
-  background:#E5E1DA;
-  transition:transform 500ms var(--ease-expo);
+  background:var(--c-placeholder-bg);
+  transition:transform var(--dur-xslow) var(--ease-expo);
 }
-[data-theme="dark"] .work-card__art { background:var(--s2); }
 .work-card__link:hover .work-card__art,
 .work-card__link:focus-visible .work-card__art { transform:scale(1.03); }
 
@@ -869,7 +916,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   display:flex; align-items:flex-end; justify-content:space-between;
   gap:1rem;
   padding:1.25rem 1.5rem;
-  transition:background 350ms var(--ease-std);
+  transition:background var(--dur-350) var(--ease-std);
 }
 .work-card__link:hover .work-card__overlay,
 .work-card__link:focus-visible .work-card__overlay {
@@ -889,7 +936,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   text-shadow:0 1px 12px rgba(0,0,0,.25);
 }
 .work-card__meta {
-  font-size:.6875rem; font-weight:600; letter-spacing:.06em;
+  font-size:var(--fs-xs); font-weight:600; letter-spacing:.06em;
   text-transform:uppercase;
   color:rgba(246,241,232,.72);
 }
@@ -898,11 +945,11 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .work-card__arrow {
   display:flex; align-items:center; justify-content:center;
   flex-shrink:0; width:2.25rem; height:2.25rem;
-  border-radius:50%;
+  border-radius:var(--r-circle);
   color:rgba(246,241,232,.95);
   background:rgba(246,241,232,.14);
   opacity:0; transform:translateY(6px);
-  transition:opacity 320ms var(--ease-std), transform 320ms var(--ease-std);
+  transition:opacity var(--dur-320) var(--ease-std), transform var(--dur-320) var(--ease-std);
 }
 .work-card__link:hover .work-card__arrow,
 .work-card__link:focus-visible .work-card__arrow {
@@ -918,12 +965,47 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 }
 
 /* ═══════════════════════════════════════════════════
+   13b. Case study page (/work/[slug])
+═══════════════════════════════════════════════════ */
+.case-study__hero {
+  width:100%; aspect-ratio:21/9; position:relative; overflow:hidden;
+}
+.case-study__hero-pattern { position:absolute; inset:0; opacity:.07; }
+.case-study__hero-icon {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.case-study__content { padding-block:clamp(3rem,8vw,6rem); }
+.case-study__back { margin-bottom:2.5rem; display:inline-flex; }
+.case-study__header { margin-bottom:3rem; }
+.case-study__tags { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1rem; }
+.case-study__title {
+  font-family:'Tiempos Text', Georgia, 'Times New Roman', serif;
+  font-size:clamp(2rem,4vw,3rem); font-weight:400;
+  letter-spacing:-.02em; margin-bottom:1rem; line-height:1.15;
+}
+.case-study__meta-row { display:flex; flex-wrap:wrap; gap:.375rem; align-items:center; }
+.case-study__role { font-size:var(--fs-base); color:var(--tx-2); margin-right:.5rem; }
+.case-study__outcome { margin-bottom:3rem; max-width:320px; }
+.case-study__section { margin-bottom:2.5rem; }
+.case-study__section-title { font-size:var(--fs-2xl); font-weight:700; margin-bottom:.875rem; }
+.case-study__section-body { font-size:var(--fs-lg); color:var(--tx-2); line-height:1.78; }
+.case-study__process { margin-bottom:3rem; }
+.case-study__process-title { font-size:var(--fs-2xl); font-weight:700; margin-bottom:1rem; }
+.case-study__process-list { padding-left:1.5rem; display:flex; flex-direction:column; gap:.75rem; }
+.case-study__process-item { font-size:var(--fs-lg); color:var(--tx-2); line-height:1.7; }
+.case-study__next {
+  margin-top:4rem; padding-top:2.5rem; border-top:var(--bw-1) solid var(--bd-1);
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem;
+}
+
+/* ═══════════════════════════════════════════════════
    14. About page (/about)
 ═══════════════════════════════════════════════════ */
 .about-pg { padding-bottom:clamp(4rem,7vw,7rem); }
 .about-pg__hd {
   padding-block:clamp(3rem,5vw,5rem);
-  border-bottom:1px solid var(--bd-1);
+  border-bottom:var(--bw-1) solid var(--bd-1);
   margin-bottom:clamp(3rem,5vw,5rem);
 }
 .about-pg__title {
@@ -940,8 +1022,8 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 }
 .about-pg__section { display:flex; flex-direction:column; gap:1.25rem; }
 .about-pg__section-label {
-  font-size:.6875rem; font-weight:700; letter-spacing:.10em;
-  text-transform:uppercase; color:var(--c-accent);
+  font-size:var(--fs-xs); font-weight:700; letter-spacing:.10em;
+  text-transform:uppercase; color:var(--tx-accent);
 }
 .about-pg__prose { display:flex; flex-direction:column; gap:1rem; }
 .about-pg__prose p { font-size:1.0625rem; color:var(--tx-2); line-height:1.8; }
@@ -950,18 +1032,60 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 }
 .about-skill {
   padding:.375rem .875rem;
-  font-size:.8125rem; font-weight:500;
-  border:1px solid var(--bd-2); border-radius:var(--r-full);
+  font-size:var(--fs-ssm); font-weight:500;
+  border:var(--bw-1) solid var(--bd-2); border-radius:var(--r-full);
   color:var(--tx-2);
 }
 .about-exp { display:flex; flex-direction:column; gap:1.75rem; }
 .about-exp__item { display:flex; flex-direction:column; gap:.375rem; }
 .about-exp__header { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:.5rem; }
-.about-exp__role { font-size:1rem; font-weight:600; color:var(--tx-1); }
-.about-exp__meta { font-size:.8125rem; color:var(--tx-3); font-weight:500; }
-.about-exp__note { font-size:.9375rem; color:var(--tx-2); }
+.about-exp__role { font-size:var(--fs-lg); font-weight:600; color:var(--tx-1); }
+.about-exp__meta { font-size:var(--fs-ssm); color:var(--tx-3); font-weight:500; }
+.about-exp__note { font-size:var(--fs-md); color:var(--tx-2); }
 .about-pg__cta-section { padding-top:1rem; }
-.about-pg__cta-text { font-size:1.125rem; color:var(--tx-1); font-weight:500; margin-bottom:1.25rem; }
+/* Bumped one step (xl→2xl, 500→600) — this is the page's terminal CTA,
+   but at the old size/weight it read at the same visual weight as the
+   bio's supporting copy a few sections up, so the page just trailed
+   off instead of landing on a closing statement. Same type scale,
+   same color, no new color/shadow/effect — just a louder step on the
+   scale that already exists. */
+.about-pg__cta-text { font-size:var(--fs-2xl); color:var(--tx-1); font-weight:600; margin-bottom:1.25rem; }
+.about-pg__cta-actions { display:flex; gap:1rem; flex-wrap:wrap; }
+
+/* ═══════════════════════════════════════════════════
+   14b. Résumé page (/resume) — was 100% inline styles,
+   bypassing every token; rebuilt as the same kind of BEM block as
+   .about-pg/.case-study so it shares one consistent heading voice,
+   spacing rhythm, and type scale with the rest of the site.
+═══════════════════════════════════════════════════ */
+.resume-pg__content { padding-block:clamp(3rem,8vw,6rem); }
+.resume-pg__header {
+  margin-bottom:3rem; padding-bottom:2rem;
+  border-bottom:var(--bw-1) solid var(--bd-2);
+}
+.resume-pg__title {
+  font-family:'Tiempos Text', Georgia, 'Times New Roman', serif;
+  font-size:clamp(2rem,4vw,3rem); font-weight:400;
+  letter-spacing:-.02em; line-height:1.15; margin-bottom:.75rem;
+}
+.resume-pg__role { font-size:1.0625rem; color:var(--tx-2); margin-bottom:1.5rem; }
+.resume-pg__links { display:flex; flex-wrap:wrap; gap:.625rem; }
+.resume-pg__section { margin-bottom:3rem; }
+.resume-pg__section-title { font-size:var(--fs-xl); font-weight:700; margin-bottom:1.5rem; color:var(--tx-1); }
+.resume-pg__exp-list { display:flex; flex-direction:column; gap:2.5rem; }
+.resume-pg__exp-item { display:grid; grid-template-columns:1fr auto; gap:1rem; }
+.resume-pg__exp-role { font-size:var(--fs-lg); font-weight:700; color:var(--tx-1); margin-bottom:.25rem; }
+.resume-pg__exp-company { font-size:var(--fs-base); color:var(--tx-accent); font-weight:600; margin-bottom:.75rem; }
+.resume-pg__exp-desc { font-size:var(--fs-base); color:var(--tx-2); margin-bottom:.75rem; line-height:1.7; }
+.resume-pg__exp-highlights { padding-left:1rem; display:flex; flex-direction:column; gap:.25rem; }
+.resume-pg__exp-highlight { font-size:var(--fs-ssm); color:var(--tx-3); }
+.resume-pg__exp-period { font-size:var(--fs-sm); color:var(--tx-3); font-weight:500; white-space:nowrap; }
+.resume-pg__skills-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1.5rem; }
+.resume-pg__skill-cat {
+  font-size:var(--fs-2xs); font-weight:700; letter-spacing:.10em;
+  text-transform:uppercase; color:var(--tx-3); margin-bottom:.625rem;
+}
+.resume-pg__skill-tags { display:flex; flex-wrap:wrap; gap:.375rem; }
 
 /* ═══════════════════════════════════════════════════
    15. Create page (/create)
@@ -969,7 +1093,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .create-pg { padding-bottom:clamp(4rem,7vw,7rem); }
 .create-pg__hd {
   padding-block:clamp(3rem,5vw,5rem);
-  border-bottom:1px solid var(--bd-1);
+  border-bottom:var(--bw-1) solid var(--bd-1);
   margin-bottom:clamp(3rem,5vw,4rem);
 }
 .create-pg__title {
@@ -979,7 +1103,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   color:var(--tx-1); line-height:1.15; margin-top:.5rem;
 }
 .create-pg__sub {
-  font-size:1rem; color:var(--tx-3); line-height:1.7; margin-top:.75rem; max-width:560px;
+  font-size:var(--fs-lg); color:var(--tx-3); line-height:1.7; margin-top:.75rem; max-width:560px;
 }
 .create-grid {
   display:grid; grid-template-columns:repeat(2,1fr);
@@ -988,21 +1112,40 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 @media(max-width:640px){ .create-grid{ grid-template-columns:1fr; } }
 .create-card {
   padding:1.75rem; background:var(--s1);
-  border:1px solid var(--bd-2); border-radius:var(--r-2xl);
+  border:var(--bw-1) solid var(--bd-2); border-radius:var(--r-2xl);
   display:flex; flex-direction:column; gap:.75rem;
 }
 .create-card__badge { min-height:1.25rem; }
 .create-card__soon {
   display:inline-block; padding:.1875rem .625rem;
   font-size:.5625rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-  color:var(--tx-3); border:1px solid var(--bd-2); border-radius:var(--r-full);
+  color:var(--tx-3); border:var(--bw-1) solid var(--bd-2); border-radius:var(--r-full);
 }
 .create-card__title {
-  font-size:1.125rem; font-weight:600; letter-spacing:-.01em; color:var(--tx-1);
+  font-size:var(--fs-xl); font-weight:600; letter-spacing:-.01em; color:var(--tx-1);
 }
-.create-card__desc { font-size:.9375rem; color:var(--tx-2); line-height:1.65; }
+.create-card__desc { font-size:var(--fs-md); color:var(--tx-2); line-height:1.65; }
 .create-pg__footer { display:flex; flex-direction:column; gap:1rem; align-items:flex-start; }
-.create-pg__footer-text { font-size:1rem; color:var(--tx-2); }
+.create-pg__footer-text { font-size:var(--fs-lg); color:var(--tx-2); }
+
+/* ═══════════════════════════════════════════════════
+   16. 404 page
+═══════════════════════════════════════════════════ */
+.notfound {
+  min-height:100svh; display:flex; align-items:center; justify-content:center;
+}
+.notfound__inner { text-align:center; padding:var(--px-sm); position:relative; }
+.notfound__bignum {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-size:clamp(8rem,25vw,18rem); font-family:var(--f-display); font-weight:900;
+  letter-spacing:-.06em; color:var(--bd-2); line-height:1;
+  user-select:none; pointer-events:none; white-space:nowrap;
+}
+.notfound__content { position:relative; z-index:var(--z-1); }
+.notfound__eyebrow { justify-content:center; }
+.notfound__title { font-size:clamp(1.5rem,3vw,2.25rem); font-weight:700; letter-spacing:-.03em; margin:.5rem 0 1rem; }
+.notfound__desc { color:var(--tx-2); max-width:380px; margin:0 auto 2rem; line-height:1.7; }
+.notfound__actions { display:flex; gap:.875rem; justify-content:center; flex-wrap:wrap; }
 
 /* ═══════════════════════════════════════════════════
    Custom cursor — desktop / fine-pointer only
@@ -1010,17 +1153,17 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .custom-cursor {
   position:fixed; top:0; left:0;
   width:20px; height:20px;
-  border-radius:50%;
-  border:1.5px solid var(--tx-2);
+  border-radius:var(--r-circle);
+  border:var(--bw-2) solid var(--tx-2);
   background:transparent;
   pointer-events:none;
-  z-index:9998; /* below loader (9999), above everything else */
+  z-index:var(--z-cursor); /* below loader (9999), above everything else */
   opacity:0;
   transition:
-    width  260ms var(--ease-expo),
-    height 260ms var(--ease-expo),
-    border-color 220ms var(--ease-std),
-    background   220ms var(--ease-std);
+    width  var(--dur-260) var(--ease-expo),
+    height var(--dur-260) var(--ease-expo),
+    border-color var(--dur-220) var(--ease-std),
+    background   var(--dur-220) var(--ease-std);
   will-change:transform;
 }
 .custom-cursor.is-hover {

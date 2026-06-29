@@ -20,12 +20,24 @@
   --glass:   rgba(246,241,232,0.92);
   --overlay: rgba(43,33,26,0.48);
 
-  /* ── Text ── */
+  /* ── Text ──
+     tx-3 darkened from the original #9E8878 (2.99:1 on --bg — fails
+     WCAG AA's 4.5:1 for normal text) to #76666A-range that clears
+     4.5:1 against both --bg and --s1. Same muted role in the tx-1→4
+     ladder, just legible at the small sizes it's actually used at
+     (footer copy, nav tabs, testimonial roles, resume meta). */
   --tx-1:    #2B211A;   /* primary               */
   --tx-2:    #6B5645;   /* secondary             */
-  --tx-3:    #9E8878;   /* muted / captions      */
+  --tx-3:    #76665A;   /* muted / captions      */
   --tx-4:    #C4B5A8;   /* disabled              */
   --tx-link: #6F5643;
+  /* Text-safe accent — same hue as --c-accent, darkened enough to
+     clear 4.5:1 for the handful of spots accent renders as small
+     text (eyebrows, section labels, avatar initials). --c-accent
+     itself stays untouched everywhere it's a border/glow/large
+     display glyph (those already clear the 3:1 large-text/non-text
+     threshold) so brand color and button/glow treatments don't shift. */
+  --tx-accent: #8D5A38;
 
   /* ── Borders ── */
   --bd-1: rgba(43,33,26,0.06);   /* soft dividers        */
@@ -60,6 +72,23 @@
   /* ── Tag backgrounds ── */
   --tag-a-bg: rgba(166,106,67,0.08);
   --tag-m-bg: #E8DED1;
+
+  /* ── Placeholder art (no real image yet) ── */
+  --c-placeholder-bg: #E5E1DA;
+  --c-placeholder-fg: #B5ADA5;
+
+  /* ── Avatar accents ── */
+  --c-avatar-purple:        #8B7355;
+  --c-avatar-purple-bg:     rgba(139,115,85,.10);
+  --c-avatar-purple-bg-lt:  rgba(139,115,85,.08);
+  --c-avatar-purple-border: rgba(139,115,85,.22);
+  --c-avatar-teal:          #5E7052;
+  --c-avatar-teal-bg:       rgba(122,140,110,.10);
+  --c-avatar-teal-bg-lt:    rgba(122,140,110,.08);
+  --c-avatar-teal-border:   rgba(122,140,110,.22);
+
+  /* ── Text-on-accent (button/arrow glyphs over a solid/colored fill) ── */
+  --c-on-accent: #fff;
 
   color-scheme: light;
 }

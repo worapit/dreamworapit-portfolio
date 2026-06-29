@@ -23,14 +23,27 @@ const ROW_BASE =
 
 // The action pill — Work / About / theme toggle / Get in Touch. Hugs
 // its own content (not the full row), and is the ONLY element that
-// ever gets a visible surface, and only once scrolled.
+// ever gets a visible surface, and only once scrolled. No `gap` here
+// anymore — each child carries its own margin instead, so the three
+// internal relationships (links→divider, divider→actions, within
+// actions) can each have a different, deliberate amount of breathing
+// room instead of one uniform number. py-1.5 (not py-2) keeps the
+// pill's own height close to the 36px CTA/34px icon-buttons it wraps,
+// so it never reads taller or bulkier than the CTA sitting inside it.
 const PILL_BASE =
-  'flex w-fit items-center gap-6 rounded-full border py-2 px-8 ' +
+  'flex w-fit items-center rounded-full border py-1.5 px-8 ' +
   'transition-[background-color,border-color,box-shadow] duration-300 ease-std';
 const PILL_AT_REST = 'bg-transparent border-transparent [box-shadow:none]';
 const PILL_SCROLLED =
   'border-[var(--bd-1)] bg-[var(--glass)] [box-shadow:var(--sh-sm)] ' +
   'backdrop-blur-xl backdrop-saturate-[1.4]';
+
+// Shared by the theme toggle and hamburger — same circular icon-button
+// shape/border/text-color/transition; each adds only its own one-off
+// (visibility breakpoint, or hover surface).
+const ICON_BTN_BASE =
+  'flex h-[34px] w-[34px] items-center justify-center rounded-full border border-[var(--bd-2)] ' +
+  'text-tx2 transition-colors duration-[180ms] hover:border-[var(--bd-3)] hover:text-tx1';
 
 export default function Nav() {
   const { toggle, isDark } = useTheme();
@@ -127,9 +140,12 @@ export default function Nav() {
               the row. Background/border/blur/shadow only appear here,
               and only once scrolled. */}
           <div className={`${PILL_BASE} ${scrolled ? PILL_SCROLLED : PILL_AT_REST}`}>
-            {/* Nav links group — its own 8px padding, independent of the
-                action wrapper's 8px/28px padding around the whole pill. */}
-            <ul className="hidden md:flex items-center gap-6 list-none p-2" role="list">
+            {/* Nav links group — its own 8px padding (hover/focus
+                breathing room) plus a 12px margin before the divider;
+                combined that's a 20px gap from "About" to the divider
+                line — the action-wrapper gap. Work↔About itself stays
+                a steady 24px via this gap-6. */}
+            <ul className="hidden md:flex items-center gap-6 list-none p-2 mr-3" role="list">
               {NAV_LINKS.map(({ label, href }) => {
                 const active = isActive(href);
                 return (
@@ -141,7 +157,7 @@ export default function Nav() {
                         after:absolute after:-bottom-0.5 after:left-0 after:h-px after:bg-accent after:content-['']
                         after:transition-[width] after:duration-[220ms] after:ease-expo
                         ${active
-                          ? 'text-accent after:w-full'
+                          ? 'text-accent-text after:w-full'
                           : 'text-tx2 hover:text-tx1 after:w-0 hover:after:w-full'}`}
                     >
                       {label}
@@ -151,18 +167,19 @@ export default function Nav() {
               })}
             </ul>
 
-            <span aria-hidden="true" className="hidden md:block h-[18px] w-px shrink-0 bg-[var(--bd-2)]" />
+            {/* Divider — a tight 6px margin of its own before the
+                action group, deliberately smaller than the 20px gap
+                it just had on its other side. */}
+            <span aria-hidden="true" className="hidden md:block h-[18px] w-px shrink-0 bg-[var(--bd-2)] mr-1.5" />
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               {/* Theme toggle */}
               <button
                 onClick={toggle}
                 type="button"
                 aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 aria-pressed={isDark}
-                className="flex h-[34px] w-[34px] items-center justify-center rounded-full border border-[var(--bd-2)]
-                           text-tx2 transition-colors duration-[180ms]
-                           hover:border-[var(--bd-3)] hover:text-tx1 hover:bg-surface-2"
+                className={`${ICON_BTN_BASE} hover:bg-surface-2`}
               >
                 <svg className="block dark:hidden h-[14px] w-[14px]" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3"/>
@@ -178,10 +195,16 @@ export default function Nav() {
               {/* Desktop CTA — primary action. Hash link to the Home
                   page's contact section: same-page smooth-scroll on
                   Home (global `scroll-behavior:smooth`), or navigate
-                  to "/" and land on #contact from any other page. */}
+                  to "/" and land on #contact from any other page.
+                  Hidden below `sm` (640px): at that width the pill is
+                  already carrying the logo + toggle + CTA + hamburger
+                  in one row with no wrap, and this exact CTA is one
+                  tap away in the mobile panel below — showing it
+                  twice in <640px of width was the crowding risk, not
+                  a need users actually have. */}
               <Link
                 href="/#contact"
-                className="btn btn--pr btn--sm h-9 px-[18px]"
+                className="hidden sm:inline-flex btn btn--pr btn--sm h-9 px-[18px]"
               >
                 Get in Touch
               </Link>
@@ -193,9 +216,7 @@ export default function Nav() {
                 aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
                 aria-expanded={open}
                 aria-controls="mobile-nav"
-                className="flex md:hidden h-[34px] w-[34px] items-center justify-center rounded-full border border-[var(--bd-2)]
-                           text-tx2 transition-colors duration-[180ms]
-                           hover:border-[var(--bd-3)] hover:text-tx1"
+                className={`${ICON_BTN_BASE} md:hidden`}
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M2 4h12M2 8h12M2 12h12"

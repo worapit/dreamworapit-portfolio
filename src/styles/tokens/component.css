@@ -3,7 +3,13 @@
    Decouples component styling from raw semantic values.
 ═══════════════════════════════════════════════════ */
 :root {
-  /* ── Button ── */
+  /* ── Button ──
+     NOTE: the height/horizontal-padding tokens below describe a
+     fixed-height sizing approach that was never wired into .btn
+     (which uses padding-only shorthand instead) — kept as-is since
+     their values don't match current rendered output; wiring them
+     would change visual size. The --btn-pad-* tokens further down
+     are the ones actually consumed by .btn. */
   --btn-h-sm:     32px;
   --btn-h-md:     40px;
   --btn-h-lg:     48px;
@@ -14,6 +20,13 @@
   --btn-font-sz:  0.875rem;
   --btn-font-w:   600;
   --btn-tracking: 0.02em;
+
+  /* ── Button — actual padding shorthand (matches current .btn rules) */
+  --btn-pad-md: .6875rem 1.625rem;
+  --btn-pad-lg: .875rem 2rem;
+  --btn-pad-sm: .375rem .875rem;
+  --btn-font-sz-lg: .9375rem;
+  --btn-font-sz-sm: .8125rem;
 
   /* ── Card ── */
   --card-bg:      var(--s1);

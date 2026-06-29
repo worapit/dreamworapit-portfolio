@@ -47,32 +47,17 @@ export default function PageWrapper({ children }) {
       return;
     }
 
-    let tl;
+    let cleanup = () => {};
+    let cancelled = false;
     (async () => {
-      const { default: gsap } = await import('gsap');
-      const chars = loader.querySelectorAll('[data-loader-char]');
-      const logo  = loader.querySelector('[data-loader-logo]');
-
-      gsap.set(chars, { y: 28, filter: 'blur(10px)', opacity: 0 });
-
-      tl = gsap.timeline({ onComplete: done });
-      tl
-        .to(chars, {
-          opacity: 1, y: 0, filter: 'blur(0px)',
-          duration: 0.55, stagger: 0.09, ease: 'power3.out',
-        })
-        .to(logo, {
-          scale: 1.04, duration: 0.28,
-          ease: 'power2.inOut', yoyo: true, repeat: 1,
-        }, '+=0.28')
-        .to(loader, {
-          opacity: 0, duration: 0.55, ease: 'power2.inOut',
-          onComplete: () => gsap.set(chars, { clearProps: 'filter' }),
-        }, '+=0.14');
+      const { runLoader } = await import('../../styles/motion/presets');
+      if (cancelled) return;
+      cleanup = await runLoader(loader, { onComplete: done });
     })();
 
     return () => {
-      tl?.kill();
+      cancelled = true;
+      cleanup();
       document.body.style.overflow = '';
     };
   }, [prefersReduced]);

@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { BREAKPOINT_MD } from '../../lib/breakpoints';
 
 /**
  * StackedReveal — layered scroll transition between Work and Contact.
@@ -22,16 +23,15 @@ export default function StackedReveal({ children }) {
 
   useEffect(() => {
     if (prefersReduced || typeof window === 'undefined') return;
-    if (window.matchMedia('(max-width: 767px)').matches) return;
+    if (window.matchMedia(`(max-width: ${BREAKPOINT_MD - 1}px)`).matches) return;
 
     let ctx = null;
     let cancelled = false;
 
     (async () => {
-      const { default: gsap } = await import('gsap');
-      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
+      const { getGSAP } = await import('../../styles/motion/scroll');
+      const { gsap } = await getGSAP();
       if (cancelled) return;
-      gsap.registerPlugin(ScrollTrigger);
 
       ctx = gsap.context(() => {
         const contact = wrapRef.current?.querySelector('#contact');

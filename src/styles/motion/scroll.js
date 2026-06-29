@@ -6,9 +6,14 @@
  * Caller pattern (inside useEffect):
  *   const cleanup = await fadeUp(ref.current);
  *   return cleanup;
+ *
+ * `getGSAP` is also exported directly for components that need raw
+ * gsap/ScrollTrigger access (custom timelines, scrub triggers) instead
+ * of one of the canned presets below — one shared import+register
+ * path instead of every call site re-importing and re-registering.
  */
 
-async function getGSAP() {
+export async function getGSAP() {
   const { default: gsap } = await import('gsap');
   const { ScrollTrigger }  = await import('gsap/ScrollTrigger');
   gsap.registerPlugin(ScrollTrigger);
@@ -50,23 +55,30 @@ export async function fadeUp(targets, {
 }
 
 /**
- * Scale + fade entrance triggered on scroll — for the full-screen
- * project case sections. Deliberately restrained (no slide/rotation):
- * just scale 0.92 → 1 and opacity 0 → 1, once, as the card enters view.
+ * Scale + rise + fade entrance triggered on scroll — for the
+ * full-screen project case sections. Subtle and independent of any
+ * scroll-position tracking elsewhere: this only ever fires once, the
+ * first time a card scrolls into view, regardless of how it got there
+ * (native scroll, scroll-snap settling, or a dot click).
  *
  * @param {Element} target
- * @param {{ start?: string; fromScale?: number; duration?: number }} [opts]
+ * @param {{ start?: string; fromScale?: number; fromOpacity?: number; y?: number; duration?: number }} [opts]
  * @returns {Promise<() => void>} cleanup
  */
 export async function scaleReveal(target, {
-  start     = 'top 82%',
-  fromScale = 0.92,
-  duration  = 0.7,
+  start       = 'top 82%',
+  fromScale   = 0.985,
+  fromOpacity = 0.9,
+  y           = 24,
+  duration    = 0.6,
 } = {}) {
   if (!target) return () => {};
   const { gsap, ScrollTrigger } = await getGSAP();
+  const { CustomEase } = await import('gsap/CustomEase');
+  gsap.registerPlugin(CustomEase);
+  const ease = CustomEase.create('projectEnter', '0.22, 1, 0.36, 1');
 
-  gsap.set(target, { opacity: 0, scale: fromScale });
+  gsap.set(target, { opacity: fromOpacity, scale: fromScale, y });
 
   const trigger = ScrollTrigger.create({
     trigger: target,
@@ -74,7 +86,7 @@ export async function scaleReveal(target, {
     once: true,
     onEnter() {
       gsap.to(target, {
-        opacity: 1, scale: 1, duration, ease: 'power2.out',
+        opacity: 1, scale: 1, y: 0, duration, ease,
         clearProps: 'transform',
       });
     },
@@ -83,109 +95,5 @@ export async function scaleReveal(target, {
   return () => {
     trigger.kill();
     gsap.set(target, { clearProps: 'all' });
-  };
-}
-
-/**
- * Staggered reveal for a grid of children.
- *
- * @param {Element} container
- * @param {{ selector?: string; stagger?: number; y?: number }} [opts]
- * @returns {Promise<() => void>} cleanup
- */
-export async function staggerReveal(container, {
-  selector = ':scope > *',
-  stagger  = 0.10,
-  y        = 30,
-} = {}) {
-  if (!container) return () => {};
-  const { gsap, ScrollTrigger } = await getGSAP();
-  const items = Array.from(container.querySelectorAll(selector));
-  if (!items.length) return () => {};
-
-  gsap.set(items, { opacity: 0, y });
-  const trigger = ScrollTrigger.create({
-    trigger: container,
-    start: 'top 87%',
-    once: true,
-    onEnter() {
-      gsap.to(items, {
-        opacity: 1, y: 0, duration: 0.6, stagger, ease: 'power2.out',
-        clearProps: 'transform',
-      });
-    },
-  });
-
-  return () => trigger.kill();
-}
-
-/**
- * Slide-in from left or right (for alternating project rows).
- *
- * @param {Element} imgEl
- * @param {Element} infoEl
- * @param {boolean} [alt] — if true, img is on the right
- * @returns {Promise<() => void>} cleanup
- */
-export async function slideInRow(imgEl, infoEl, alt = false) {
-  if (!imgEl || !infoEl) return () => {};
-  const { gsap, ScrollTrigger } = await getGSAP();
-
-  // Pre-initialise to hidden state BEFORE the trigger fires so elements
-  // are never visible-then-snapped-to-invisible when onEnter runs.
-  gsap.set(imgEl,  { opacity: 0, x: alt ?  50 : -50 });
-  gsap.set(infoEl, { opacity: 0, x: alt ? -50 :  50 });
-
-  const trigger = ScrollTrigger.create({
-    trigger: imgEl.closest('.proj-row') || imgEl,
-    start: 'top 82%',
-    once: true,
-    onEnter() {
-      gsap.to(imgEl,  {
-        opacity: 1, x: 0, duration: 0.80, ease: 'power3.out',
-        clearProps: 'transform',
-      });
-      gsap.to(infoEl, {
-        opacity: 1, x: 0, duration: 0.80, delay: 0.14, ease: 'power3.out',
-        clearProps: 'transform',
-      });
-    },
-  });
-
-  return () => {
-    trigger.kill();
-    // Restore visibility if trigger was killed before it fired
-    gsap.set([imgEl, infoEl], { clearProps: 'all' });
-  };
-}
-
-/**
- * Section header children staggered in.
- *
- * @param {Element} header
- * @returns {Promise<() => void>} cleanup
- */
-export async function revealSectionHeader(header) {
-  if (!header) return () => {};
-  const { gsap, ScrollTrigger } = await getGSAP();
-
-  const children = Array.from(header.children);
-  gsap.set(children, { opacity: 0, y: 24 });
-
-  const trigger = ScrollTrigger.create({
-    trigger: header,
-    start: 'top 86%',
-    once: true,
-    onEnter() {
-      gsap.to(children, {
-        opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: 'power2.out',
-        clearProps: 'transform',
-      });
-    },
-  });
-
-  return () => {
-    trigger.kill();
-    gsap.set(children, { clearProps: 'all' });
   };
 }

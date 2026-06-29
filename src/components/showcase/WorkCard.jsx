@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import ProjectPlaceholder from './ProjectPlaceholder';
 
 /**
  * WorkCard — full-image card with text overlay for the /work listing page.
@@ -24,24 +25,7 @@ export default function WorkCard({ title, company, year, slug, workSection }) {
         aria-label={`View ${title} ${isCaseStudy ? 'case study' : 'project'}`}
       >
         <div className="work-card__art">
-          {/* Placeholder — replaced with real image later */}
-          <div className="proj-placeholder" aria-hidden="true">
-            <svg
-              width="28" height="28" viewBox="0 0 32 32" fill="none"
-              aria-hidden="true"
-            >
-              <rect x="2" y="5" width="28" height="22" rx="3"
-                stroke="currentColor" strokeWidth="1.4" />
-              <circle cx="10" cy="13" r="2.5"
-                stroke="currentColor" strokeWidth="1.4" />
-              <path
-                d="M2 22l7-6 5 5 4.5-6L28 22"
-                stroke="currentColor" strokeWidth="1.4"
-                strokeLinejoin="round" strokeLinecap="round"
-              />
-            </svg>
-            <span className="proj-placeholder__label">Project Screenshot</span>
-          </div>
+          <ProjectPlaceholder size={28} />
         </div>
 
         {/* Bottom gradient overlay — holds title/meta (always visible) and corner arrow (hover only) */}

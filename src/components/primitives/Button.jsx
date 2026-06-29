@@ -1,6 +1,8 @@
 'use client';
 
-import { forwardRef, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { BREAKPOINT_MD } from '../../lib/breakpoints';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 /**
  * Reusable Button primitive.
@@ -12,34 +14,35 @@ import { forwardRef, useEffect, useRef } from 'react';
  *  magnetic  boolean — enables GSAP magnetic drift on desktop (default: false)
  *  icon      ReactNode — icon element appended inside button
  *  className string — additional classes
+ *  ref       forwarded to the underlying <a>/<button> (React 19: plain
+ *            prop, no forwardRef wrapper needed)
  */
-const Button = forwardRef(function Button(
-  {
-    variant  = 'primary',
-    size     = 'md',
-    href,
-    children,
-    className = '',
-    magnetic  = false,
-    icon,
-    ...props
-  },
-  externalRef,
-) {
+export default function Button({
+  variant  = 'primary',
+  size     = 'md',
+  href,
+  children,
+  className = '',
+  magnetic  = false,
+  icon,
+  ref: externalRef,
+  ...props
+}) {
   const internalRef = useRef(null);
   const ref = externalRef || internalRef;
+  const prefersReduced = useReducedMotion();
 
   // Magnetic hover effect — desktop only, async GSAP import
   useEffect(() => {
-    if (!magnetic || typeof window === 'undefined') return;
-    if (window.innerWidth < 768) return;
+    if (!magnetic || prefersReduced || typeof window === 'undefined') return;
+    if (window.innerWidth < BREAKPOINT_MD) return;
 
     let cleanup = () => {};
     import('../../styles/motion/presets').then(({ magneticButton }) => {
       magneticButton(ref.current).then((fn) => { cleanup = fn; });
     });
     return () => cleanup();
-  }, [magnetic, ref]);
+  }, [magnetic, prefersReduced, ref]);
 
   const variantClass = {
     primary: 'btn--pr',
@@ -72,6 +75,4 @@ const Button = forwardRef(function Button(
       {content}
     </button>
   );
-});
-
-export default Button;
+}

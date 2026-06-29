@@ -32,7 +32,7 @@ export default function WorkPage() {
     .filter(({ count }) => count > 0);
 
   return (
-    <main style={{ paddingTop: 'var(--nav-h)' }}>
+    <main className="pg-top">
 
       {/* ── Tabs — lightweight, sticky only once scrolled past it ── */}
       <WorkSectionNav sections={navSections} />

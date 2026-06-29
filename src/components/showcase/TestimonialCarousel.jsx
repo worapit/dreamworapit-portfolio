@@ -14,22 +14,26 @@ export default function TestimonialCarousel({ items }) {
   const prefersReduced = useReducedMotion();
 
   // ── Seamless auto-scroll loop ──────────────────────────────────
-  const tick = useCallback(() => {
-    const el = trackRef.current;
-    if (el && !pausedRef.current) {
-      el.scrollLeft += SPEED;
-      // When we've scrolled past the first copy, jump back seamlessly
-      const half = el.scrollWidth / 2;
-      if (el.scrollLeft >= half) el.scrollLeft -= half;
-    }
-    animRef.current = requestAnimationFrame(tick);
-  }, []);
-
+  // A hoisted function declaration (not a const-assigned callback) so
+  // it can recursively schedule itself via requestAnimationFrame
+  // without a "used before declaration" self-reference.
   useEffect(() => {
     if (prefersReduced) return;
+
+    function tick() {
+      const el = trackRef.current;
+      if (el && !pausedRef.current) {
+        el.scrollLeft += SPEED;
+        // When we've scrolled past the first copy, jump back seamlessly
+        const half = el.scrollWidth / 2;
+        if (el.scrollLeft >= half) el.scrollLeft -= half;
+      }
+      animRef.current = requestAnimationFrame(tick);
+    }
+
     animRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animRef.current);
-  }, [prefersReduced, tick]);
+  }, [prefersReduced]);
 
   // ── Pause / resume helpers ─────────────────────────────────────
   const pause  = useCallback(() => { pausedRef.current = true; }, []);

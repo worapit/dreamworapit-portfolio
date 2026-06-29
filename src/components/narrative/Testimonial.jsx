@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { BREAKPOINT_MD } from '../../lib/breakpoints';
 
 const AVATAR_COLORS = {
   blue:   'av-blue',
@@ -37,7 +38,7 @@ export default function Testimonial({ quote, name, role, initials, color = 'blue
   // Hover lift (desktop)
   useEffect(() => {
     if (prefersReduced || typeof window === 'undefined') return;
-    if (window.innerWidth < 768) return;
+    if (window.innerWidth < BREAKPOINT_MD) return;
     const el = cardRef.current;
     if (!el) return;
 

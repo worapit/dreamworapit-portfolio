@@ -44,19 +44,19 @@ const SKILLS = [
 
 export default function ResumePage() {
   return (
-    <div style={{ paddingTop: 'var(--nav-h)' }}>
-      <div className="wrap wrap--sm" style={{ paddingBlock: 'clamp(3rem, 8vw, 6rem)' }}>
+    <div className="pg-top">
+      <div className="wrap wrap--sm resume-pg__content">
 
         {/* Header */}
-        <header style={{ marginBottom: '3rem', paddingBottom: '2rem', borderBottom: '1px solid var(--bd-2)' }}>
+        <header className="resume-pg__header">
           <p className="eyebrow">Résumé</p>
-          <h1 style={{ fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 800, letterSpacing: '-.04em', marginBottom: '.75rem' }}>
+          <h1 className="resume-pg__title">
             Worapit
           </h1>
-          <p style={{ fontSize: '1.0625rem', color: 'var(--tx-2)', marginBottom: '1.5rem' }}>
+          <p className="resume-pg__role">
             UX/UI Designer &amp; Experience Storyteller
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.625rem' }}>
+          <div className="resume-pg__links">
             <a href="mailto:hello@w0rapit.com" className="btn btn--out btn--sm">hello@w0rapit.com</a>
             <a href="https://linkedin.com/in/worapit" className="btn btn--out btn--sm" target="_blank" rel="noopener">LinkedIn ↗</a>
             <a href="/resume.pdf" className="btn btn--pr btn--sm" download>Download PDF</a>
@@ -64,24 +64,24 @@ export default function ResumePage() {
         </header>
 
         {/* Experience */}
-        <section aria-labelledby="exp-title" style={{ marginBottom: '3rem' }}>
-          <h2 id="exp-title" style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--tx-1)' }}>
+        <section aria-labelledby="exp-title" className="resume-pg__section">
+          <h2 id="exp-title" className="resume-pg__section-title">
             Experience
           </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+          <div className="resume-pg__exp-list">
             {EXPERIENCE.map(({ role, company, period, description, highlights }) => (
-              <article key={company} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '1rem' }}>
+              <article key={company} className="resume-pg__exp-item">
                 <div>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--tx-1)', marginBottom: '.25rem' }}>{role}</h3>
-                  <p style={{ fontSize: '.875rem', color: 'var(--c-accent)', fontWeight: 600, marginBottom: '.75rem' }}>{company}</p>
-                  <p style={{ fontSize: '.875rem', color: 'var(--tx-2)', marginBottom: '.75rem', lineHeight: 1.7 }}>{description}</p>
-                  <ul style={{ paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '.25rem' }}>
+                  <h3 className="resume-pg__exp-role">{role}</h3>
+                  <p className="resume-pg__exp-company">{company}</p>
+                  <p className="resume-pg__exp-desc">{description}</p>
+                  <ul className="resume-pg__exp-highlights">
                     {highlights.map((h) => (
-                      <li key={h} style={{ fontSize: '.8125rem', color: 'var(--tx-3)' }}>{h}</li>
+                      <li key={h} className="resume-pg__exp-highlight">{h}</li>
                     ))}
                   </ul>
                 </div>
-                <span style={{ fontSize: '.75rem', color: 'var(--tx-3)', fontWeight: 500, whiteSpace: 'nowrap' }}>{period}</span>
+                <span className="resume-pg__exp-period">{period}</span>
               </article>
             ))}
           </div>
@@ -89,16 +89,16 @@ export default function ResumePage() {
 
         {/* Skills */}
         <section aria-labelledby="skills-title">
-          <h2 id="skills-title" style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.5rem' }}>
+          <h2 id="skills-title" className="resume-pg__section-title">
             Skills
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: '1.5rem' }}>
+          <div className="resume-pg__skills-grid">
             {SKILLS.map(({ category, items }) => (
               <div key={category}>
-                <p style={{ fontSize: '.625rem', fontWeight: 700, letterSpacing: '.10em', textTransform: 'uppercase', color: 'var(--tx-3)', marginBottom: '.625rem' }}>
+                <p className="resume-pg__skill-cat">
                   {category}
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.375rem' }}>
+                <div className="resume-pg__skill-tags">
                   {items.map((item) => <span key={item} className="tag tag-m">{item}</span>)}
                 </div>
               </div>

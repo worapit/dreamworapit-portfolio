@@ -9,7 +9,7 @@ export const metadata = generateMeta({
 
 export default function CreatePage() {
   return (
-    <main style={{ paddingTop: 'var(--nav-h)' }}>
+    <main className="pg-top">
       <div className="wrap">
         <div className="create-pg">
 
