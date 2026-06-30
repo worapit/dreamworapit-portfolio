@@ -40,7 +40,7 @@
   /* ── Input ── */
   --input-bg:           var(--s1);
   --input-border:       var(--bd-2);
-  --input-border-focus: var(--c-accent);
+  --input-border-focus: var(--tx-1);
   --input-h:            44px;
   --input-radius:       var(--r-md);
   --input-px:           14px;
@@ -71,11 +71,11 @@
      and the 88px desktop ceiling. */
   --fs-hero-headline: clamp(2.25rem, 7vw, 5.5rem); /* 36px mobile → 88px desktop */
 
-  /* ── Loader ── */
-  --loader-font-sz: clamp(2.5rem, 7vw, 4.5rem);
-  --loader-tracking: -0.06em;
-
-  /* ── Focus ring ── */
-  --focus-ring:        2px solid var(--c-accent);
+  /* ── Focus ring — neutral (--tx-1), not indigo: indigo-500 only
+     clears ~2.1:1 against the dark-mode background, short of the 3:1
+     WCAG 1.4.11 needs for a UI indicator. --tx-1 already clears 17:1+
+     in both themes and reads as "cool neutral," which fits the mood
+     better than a colored ring anyway. ── */
+  --focus-ring:        2px solid var(--tx-1);
   --focus-ring-offset: 3px;
 }

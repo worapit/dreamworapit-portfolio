@@ -3,47 +3,68 @@
    All components consume ONLY these names.
 ═══════════════════════════════════════════════════ */
 :root {
-  /* ── Brand colours (same in both modes) ── */
-  --c-primary:    #6F5643;
-  --c-primary-h:  #5A4536;
-  --c-accent:     #A66A43;
-  --c-accent-h:   #8F5736;
+  /* ── Brand colours (same in both modes) — luxury editorial, not SaaS.
+     primary = near-black graphite, the only color most UI (buttons,
+     primary actions) ever shows; indigo is a quiet supporting accent —
+     borders, glass edges, glows, hover highlights, cursor, background
+     atmosphere — never a fill color of its own. */
+  --c-primary:    var(--graphite-900);
+  --c-primary-h:  var(--graphite-800);  /* hover — subtle lighten, not brighter-blue */
+  --c-primary-a:  var(--graphite-950);  /* active/pressed — deeper */
+  --c-accent:     var(--indigo-500);
+  --c-accent-h:   var(--indigo-400);  /* hover — brighter */
   --c-success:    #7A8C6E;
   --c-warning:    #C4873E;
   --c-error:      #9B4A3A;
 
-  /* ── Surface hierarchy ── */
-  --bg:      #F6F1E8;   /* page background      */
-  --s1:      #FBF7EF;   /* cards, panels         */
-  --s2:      #EFE8DA;   /* raised elements       */
-  --s3:      #FBF7EF;   /* highest surface       */
-  --glass:   rgba(246,241,232,0.92);
-  --overlay: rgba(43,33,26,0.48);
+  /* ── Surface hierarchy — cool, very subtly blue-tinted ── */
+  --bg:      var(--frost-100); /* page background      */
+  --s1:      var(--frost-50);  /* cards, panels         */
+  --s2:      var(--frost-200); /* raised elements       */
+  --s3:      var(--frost-50);  /* highest surface       */
+  --glass:   rgba(245,247,250,0.92);
+  --overlay: rgba(17,21,31,0.48);
 
-  /* ── Text ──
-     tx-3 darkened from the original #9E8878 (2.99:1 on --bg — fails
-     WCAG AA's 4.5:1 for normal text) to #76666A-range that clears
-     4.5:1 against both --bg and --s1. Same muted role in the tx-1→4
-     ladder, just legible at the small sizes it's actually used at
-     (footer copy, nav tabs, testimonial roles, resume meta). */
-  --tx-1:    #2B211A;   /* primary               */
-  --tx-2:    #6B5645;   /* secondary             */
-  --tx-3:    #76665A;   /* muted / captions      */
-  --tx-4:    #C4B5A8;   /* disabled              */
-  --tx-link: #6F5643;
-  /* Text-safe accent — same hue as --c-accent, darkened enough to
-     clear 4.5:1 for the handful of spots accent renders as small
-     text (eyebrows, section labels, avatar initials). --c-accent
-     itself stays untouched everywhere it's a border/glow/large
-     display glyph (those already clear the 3:1 large-text/non-text
-     threshold) so brand color and button/glow treatments don't shift. */
-  --tx-accent: #8D5A38;
+  /* ── Glass surfaces — Apple-style translucent panels. Consumed by
+     the navbar action pill, availability pill, contact link/footer
+     icon buttons, and .btn-glass; nothing hardcodes its own rgba. ── */
+  --glass-bg:        rgba(255,255,255,0.55);
+  --glass-border:    var(--bd-a);   /* faint indigo edge highlight */
+  --glass-highlight: inset 0 1px 0 rgba(255,255,255,0.45);
+  --glass-shadow:    0 4px 20px rgba(17,21,31,0.06), var(--glow-s);
+  --glass-blur:      blur(20px) saturate(1.5);
+
+  /* ── Water droplets — Hero background only (see Hero.jsx). Light
+     mode needs a visible edge/shadow to read as a bead against a
+     light page (a plain bright highlight would just blend in); the
+     indigo tint stays faint here since "catching blue/indigo light"
+     is the dark-mode read — see dark.css for that contrast. ── */
+  --droplet-highlight: rgba(255,255,255,.65);
+  --droplet-tint:      rgba(65,68,107,.16);
+  --droplet-border:    rgba(17,21,31,.12);
+  --droplet-shadow:    0 2px 6px rgba(17,21,31,.10);
+
+  /* ── Text — cool navy/slate, same contrast discipline as before:
+     tx-3 stays in the range that clears WCAG AA's 4.5:1 against both
+     --bg and --s1 (same muted role — footer copy, nav tabs, testimonial
+     roles, resume meta — just a cool hue instead of warm brown now). */
+  --tx-1:    var(--slate-800); /* primary               */
+  --tx-2:    var(--slate-500); /* secondary             */
+  --tx-3:    var(--slate-400); /* muted / captions      */
+  --tx-4:    var(--frost-400); /* disabled              */
+  --tx-link: var(--tx-2);
+  /* Foreground-safe indigo — reserved for ACTIVE/current-state marks
+     (hero rotating word, the active project-progress dot, active nav
+     tab) where indigo has to be a solid, readable mark instead of a
+     translucent wash. Static labels (eyebrows, avatar initials, resume
+     meta) use --tx-2 directly instead — see their call sites. */
+  --tx-accent: var(--indigo-700);
 
   /* ── Borders ── */
-  --bd-1: rgba(43,33,26,0.06);   /* soft dividers        */
-  --bd-2: rgba(43,33,26,0.10);   /* card edges           */
-  --bd-3: rgba(43,33,26,0.18);   /* strong / focused     */
-  --bd-a: rgba(166,106,67,0.22); /* accent border        */
+  --bd-1: rgba(17,21,31,0.06);    /* soft dividers        */
+  --bd-2: rgba(17,21,31,0.10);    /* card edges           */
+  --bd-3: rgba(17,21,31,0.18);    /* strong / focused     */
+  --bd-a: rgba(65,68,107,0.22);   /* accent border — faint indigo highlight */
 
   /* ── Typography ──
      One sans-serif (DM Sans) for both type roles — display weight/size
@@ -54,34 +75,36 @@
   --f-mono:    'GeistMono', 'Fira Code', monospace;
 
   /* ── Shadows ── */
-  --sh-xs:   0 1px 2px rgba(43,33,26,.05);
-  --sh-sm:   0 1px 3px rgba(43,33,26,.07), 0 2px 8px rgba(43,33,26,.04);
-  --sh-card: 0 1px 3px rgba(43,33,26,.05), 0 4px 16px rgba(43,33,26,.04);
-  --sh-lift: 0 4px 16px rgba(43,33,26,.08), 0 16px 48px rgba(43,33,26,.05);
-  --sh-nav:  0 1px 3px rgba(43,33,26,.06);
+  --sh-xs:   0 1px 2px rgba(17,21,31,.05);
+  --sh-sm:   0 1px 3px rgba(17,21,31,.07), 0 2px 8px rgba(17,21,31,.04);
+  --sh-card: 0 1px 3px rgba(17,21,31,.05), 0 4px 16px rgba(17,21,31,.04);
+  --sh-lift: 0 4px 16px rgba(17,21,31,.08), 0 16px 48px rgba(17,21,31,.05);
+  --sh-nav:  0 1px 3px rgba(17,21,31,.06);
 
-  /* ── Glows ── */
-  --glow-s:   0 0 20px rgba(166,106,67,.10);
-  --glow-m:   0 0 32px rgba(166,106,67,.16);
-  --glow-cta: 0 0 24px rgba(111,86,67,.14), 0 0 6px rgba(111,86,67,.08);
+  /* ── Glows — all indigo now, including the primary button's own
+     hover glow (--glow-cta): primary itself is graphite/near-black, so
+     its "glow" is a quiet indigo edge-light, not a colored halo. ── */
+  --glow-s:   0 0 20px rgba(65,68,107,.10);
+  --glow-m:   0 0 32px rgba(65,68,107,.16);
+  --glow-cta: 0 0 14px rgba(65,68,107,.14), 0 0 3px rgba(65,68,107,.10);
 
   /* ── Thumbnail overlay ── */
-  --thumb-from: rgba(43,33,26,0);
-  --thumb-to:   rgba(43,33,26,0.88);
+  --thumb-from: rgba(17,21,31,0);
+  --thumb-to:   rgba(17,21,31,0.88);
 
   /* ── Tag backgrounds ── */
-  --tag-a-bg: rgba(166,106,67,0.08);
-  --tag-m-bg: #E8DED1;
+  --tag-a-bg: rgba(65,68,107,0.08);
+  --tag-m-bg: var(--frost-300);
 
   /* ── Placeholder art (no real image yet) ── */
-  --c-placeholder-bg: #E5E1DA;
-  --c-placeholder-fg: #B5ADA5;
+  --c-placeholder-bg: var(--frost-200);
+  --c-placeholder-fg: var(--slate-300);
 
   /* ── Avatar accents ── */
-  --c-avatar-purple:        #8B7355;
-  --c-avatar-purple-bg:     rgba(139,115,85,.10);
-  --c-avatar-purple-bg-lt:  rgba(139,115,85,.08);
-  --c-avatar-purple-border: rgba(139,115,85,.22);
+  --c-avatar-purple:        var(--violet-500);
+  --c-avatar-purple-bg:     rgba(139,111,199,.10);
+  --c-avatar-purple-bg-lt:  rgba(139,111,199,.08);
+  --c-avatar-purple-border: rgba(139,111,199,.22);
   --c-avatar-teal:          #5E7052;
   --c-avatar-teal-bg:       rgba(122,140,110,.10);
   --c-avatar-teal-bg-lt:    rgba(122,140,110,.08);

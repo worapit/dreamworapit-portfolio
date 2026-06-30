@@ -67,10 +67,10 @@ export async function fadeUp(targets, {
  */
 export async function scaleReveal(target, {
   start       = 'top 82%',
-  fromScale   = 0.985,
+  fromScale   = 0.98,
   fromOpacity = 0.9,
-  y           = 24,
-  duration    = 0.6,
+  y           = 32,
+  duration    = 0.9,
 } = {}) {
   if (!target) return () => {};
   const { gsap, ScrollTrigger } = await getGSAP();
@@ -95,5 +95,79 @@ export async function scaleReveal(target, {
   return () => {
     trigger.kill();
     gsap.set(target, { clearProps: 'all' });
+  };
+}
+
+/**
+ * Continuous scale/opacity dip as a card scrolls past its centered
+ * resting position and starts exiting the top of the viewport.
+ * Independent of scaleReveal above — starts from 'center center' so
+ * its scrub window never overlaps scaleReveal's once-fired entrance
+ * (which finishes well before the card reaches center).
+ *
+ * @param {Element} target
+ * @param {{ toScale?: number; toOpacity?: number }} [opts]
+ * @returns {Promise<() => void>} cleanup
+ */
+export async function cardLeave(target, {
+  toScale   = 0.985,
+  toOpacity = 0.9,
+} = {}) {
+  if (!target) return () => {};
+  const { gsap, ScrollTrigger } = await getGSAP();
+
+  const tween = gsap.to(target, {
+    scale: toScale, opacity: toOpacity, ease: 'none',
+    scrollTrigger: {
+      trigger: target,
+      start: 'center center',
+      end: 'top top',
+      scrub: true,
+    },
+  });
+
+  return () => {
+    tween.scrollTrigger?.kill();
+    tween.kill();
+    gsap.set(target, { clearProps: 'scale,opacity' });
+  };
+}
+
+/**
+ * Subtle scroll-linked image parallax — y drifts and scale settles as
+ * the card transits the viewport. `ease:'none'` since GSAP scrub
+ * already ties progress 1:1 to scroll position; easing here would just
+ * fight the scrub and feel laggy.
+ *
+ * @param {Element} target
+ * @param {{ yFrom?: number; yTo?: number; scaleFrom?: number; scaleTo?: number }} [opts]
+ * @returns {Promise<() => void>} cleanup
+ */
+export async function imageParallax(target, {
+  yFrom     = -24,
+  yTo       = 24,
+  scaleFrom = 1.03,
+  scaleTo   = 1,
+} = {}) {
+  if (!target) return () => {};
+  const { gsap, ScrollTrigger } = await getGSAP();
+
+  const tween = gsap.fromTo(target,
+    { y: yFrom, scale: scaleFrom },
+    {
+      y: yTo, scale: scaleTo, ease: 'none',
+      scrollTrigger: {
+        trigger: target,
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: true,
+      },
+    }
+  );
+
+  return () => {
+    tween.scrollTrigger?.kill();
+    tween.kill();
+    gsap.set(target, { clearProps: 'transform' });
   };
 }

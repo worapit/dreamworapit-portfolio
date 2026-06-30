@@ -1,6 +1,6 @@
 /** @type {import('next').Metadata} */
 export const defaultMeta = {
-  title: 'w0rapit — UX/UI Designer & Experience Storyteller',
+  title: 'w0rapit | design',
   description:
     'UX/UI designer crafting intuitive products across PropTech, Education, and Digital Signage through AI-enhanced workflows.',
   siteUrl: 'https://w0rapit.com',
@@ -26,6 +26,11 @@ export function generateMeta(overrides = {}) {
     description,
     metadataBase: new URL(defaultMeta.siteUrl),
     alternates: { canonical: url },
+    icons: {
+      icon: '/favicon.svg',
+      shortcut: '/favicon.svg',
+      apple: '/favicon.svg',
+    },
     openGraph: {
       title,
       description,

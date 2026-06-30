@@ -67,7 +67,7 @@ export default function RotatingWord() {
   }
 
   return (
-    <span className="hero__rotating-word">
+    <span className="hero__rotating-word" data-gsap="" data-hero-word="">
       {/* Invisible sizer — reserves width for the longest word so the
           surrounding sentence never reflows as words swap. */}
       <span className="hero__rotating-word-sizer" aria-hidden="true">PropTech</span>

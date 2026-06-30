@@ -10,45 +10,51 @@ const NAV_LINKS = [
   { label: 'About', href: '/about' },
 ];
 
-// Outer alignment row — deliberately WIDER than .wrap/max-w-site (the
-// hero/content container). The navbar reads as more spacious/premium
-// when it isn't pinned to the same narrower measure as body copy; the
-// logo still sits at this row's left edge and the pill at its right
-// edge, just with more breathing room than the hero content below.
-// This row never carries a background, border, or shadow of its own —
-// only the pill does, and only on scroll.
-const ROW_BASE =
-  'relative z-10 flex h-16 w-full max-w-[1600px] items-center justify-between ' +
-  'mx-auto px-6 md:px-12 lg:px-24';
+// Inner row — purely a flex layout (logo left, pill right) now that
+// the <nav> element itself (below) carries the max-width/centering/
+// padding, sharing .wrap's exact --site-w + --px-sm/md/px tokens so
+// the navbar's left/right edges land exactly where Hero's and
+// Contact's content does. This row never carries a background,
+// border, or shadow of its own — only the pill does (PILL_GLASS).
+const ROW_BASE = 'relative z-10 flex h-16 w-full items-center justify-between';
 
 // The action pill — Work / About / theme toggle / Get in Touch. Hugs
-// its own content (not the full row), and is the ONLY element that
-// ever gets a visible surface, and only once scrolled. No `gap` here
-// anymore — each child carries its own margin instead, so the three
-// internal relationships (links→divider, divider→actions, within
-// actions) can each have a different, deliberate amount of breathing
-// room instead of one uniform number. py-1.5 (not py-2) keeps the
-// pill's own height close to the 36px CTA/34px icon-buttons it wraps,
-// so it never reads taller or bulkier than the CTA sitting inside it.
+// its own content tightly (uniform 8px padding, not a wide asymmetric
+// one) and is the ONLY element that ever gets a visible surface — on
+// desktop only once scrolled, on mobile/tablet from the start (see
+// showGlass below). No `gap` here — each child carries its own
+// margin instead, so the three internal relationships (links→divider,
+// divider→actions, within actions) can each have a different,
+// deliberate amount of breathing room instead of one uniform number.
 const PILL_BASE =
-  'flex w-fit items-center rounded-full border py-1.5 px-8 ' +
+  'flex w-fit items-center rounded-full border p-2 ' +
   'transition-[background-color,border-color,box-shadow] duration-300 ease-std';
 const PILL_AT_REST = 'bg-transparent border-transparent [box-shadow:none]';
-const PILL_SCROLLED =
-  'border-[var(--bd-1)] bg-[var(--glass)] [box-shadow:var(--sh-sm)] ' +
-  'backdrop-blur-xl backdrop-saturate-[1.4]';
+// Same surface shown once scrolled (desktop) or always (mobile/tablet,
+// where there's no "top of page" transparent moment worth having —
+// the pill should just read as a real nav bar from the start).
+const PILL_GLASS =
+  'border-[var(--glass-border)] bg-[var(--glass-bg)] ' +
+  '[box-shadow:var(--glass-highlight),var(--glass-shadow)] ' +
+  '[backdrop-filter:var(--glass-blur)] [-webkit-backdrop-filter:var(--glass-blur)]';
 
 // Shared by the theme toggle and hamburger — same circular icon-button
 // shape/border/text-color/transition; each adds only its own one-off
-// (visibility breakpoint, or hover surface).
+// (visibility breakpoint). Hover is a subtle glass highlight (background
+// + soft inner highlight + border/icon shift) — no glow, just enough
+// lift to read as a real button.
 const ICON_BTN_BASE =
   'flex h-[34px] w-[34px] items-center justify-center rounded-full border border-[var(--bd-2)] ' +
-  'text-tx2 transition-colors duration-[180ms] hover:border-[var(--bd-3)] hover:text-tx1';
+  'text-tx2 transition-[background-color,border-color,color,box-shadow] duration-[180ms] ' +
+  'hover:border-[var(--glass-border)] hover:text-tx1 hover:bg-[var(--glass-bg)] ' +
+  'hover:[box-shadow:var(--glass-highlight)] hover:[backdrop-filter:var(--glass-blur)] ' +
+  'hover:[-webkit-backdrop-filter:var(--glass-blur)]';
 
 export default function Nav() {
   const { toggle, isDark } = useTheme();
   const pathname           = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
   const [open, setOpen]    = useState(false);
 
   // Active link: exact match or prefix match (e.g. /work/[slug] → Work active)
@@ -68,6 +74,20 @@ export default function Nav() {
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Desktop vs mobile/tablet — the pill's glass surface is always on
+  // below this breakpoint (no transparent "top of page" state there),
+  // and only scroll-gated at/above it. Matches the `md:` breakpoint
+  // used everywhere else for the same nav-links/hamburger split.
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  const showGlass = scrolled || !isDesktop;
 
   // Body scroll lock when mobile menu open
   useEffect(() => {
@@ -96,22 +116,30 @@ export default function Nav() {
   return (
     <header role="banner">
       <nav
-        className="nav fixed left-0 right-0 top-[var(--nav-offset)] z-[100]"
+        className="nav fixed left-1/2 top-[var(--nav-offset)] z-[100] w-full max-w-[var(--site-w)]
+                   -translate-x-1/2 px-[var(--px-sm)] md:px-[var(--px-md)] lg:px-[var(--px)]"
         role="navigation"
         aria-label="Main navigation"
       >
-        {/* Alignment row — same max-width/padding as .wrap. Logo sits at
-            its left edge, the pill at its right edge; the row itself is
-            always transparent, at rest and on scroll alike. */}
+        {/* Alignment row — logo sits at its left edge, the pill at its
+            right edge; the row itself is always transparent, at rest
+            and on scroll alike. Centering/max-width/padding all live on
+            <nav> above (same .wrap tokens as Hero/Contact), not here. */}
         <div className={ROW_BASE}>
 
           {/* Logo — always left, links to Home. Never wrapped in the
               scrolled pill surface — stays clean and separate at every
-              scroll position. */}
+              scroll position. p-2 matches the pill's own p-2 (PILL_BASE)
+              so the logo gets the same internal breathing room from the
+              row's edge that the action group's icons get — without it,
+              the logo sits flush against the row boundary while the
+              pill's content sits 8px further in, reading as "clipped"
+              by comparison even though both start from the same
+              padded row. */}
           <Link
             href="/"
             aria-label="w0rapit — Home"
-            className="relative z-10 inline-flex items-center no-underline
+            className="relative z-10 inline-flex items-center p-2 no-underline
                        transition-transform duration-[240ms] ease-std
                        motion-safe:hover:-translate-y-px
                        motion-safe:active:translate-y-0 motion-safe:active:scale-[0.97] motion-safe:active:duration-[80ms]"
@@ -139,13 +167,13 @@ export default function Nav() {
           {/* The pill — hugs its own content, sits at the right edge of
               the row. Background/border/blur/shadow only appear here,
               and only once scrolled. */}
-          <div className={`${PILL_BASE} ${scrolled ? PILL_SCROLLED : PILL_AT_REST}`}>
+          <div className={`${PILL_BASE} ${showGlass ? PILL_GLASS : PILL_AT_REST} !p-2 `}>
             {/* Nav links group — its own 8px padding (hover/focus
                 breathing room) plus a 12px margin before the divider;
                 combined that's a 20px gap from "About" to the divider
                 line — the action-wrapper gap. Work↔About itself stays
                 a steady 24px via this gap-6. */}
-            <ul className="hidden md:flex items-center gap-6 list-none p-2 mr-3" role="list">
+            <ul className="hidden md:flex items-center gap-6 list-none !p-2 !mr-3 " role="list">
               {NAV_LINKS.map(({ label, href }) => {
                 const active = isActive(href);
                 return (
@@ -170,7 +198,7 @@ export default function Nav() {
             {/* Divider — a tight 6px margin of its own before the
                 action group, deliberately smaller than the 20px gap
                 it just had on its other side. */}
-            <span aria-hidden="true" className="hidden md:block h-[18px] w-px shrink-0 bg-[var(--bd-2)] mr-1.5" />
+            <span aria-hidden="true" className="hidden md:block h-[18px] w-px shrink-0 bg-[var(--bd-2)] !mr-3" />
 
             <div className="flex items-center gap-3">
               {/* Theme toggle */}
@@ -179,7 +207,7 @@ export default function Nav() {
                 type="button"
                 aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 aria-pressed={isDark}
-                className={`${ICON_BTN_BASE} hover:bg-surface-2`}
+                className={ICON_BTN_BASE}
               >
                 <svg className="block dark:hidden h-[14px] w-[14px]" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3"/>

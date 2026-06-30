@@ -4,9 +4,11 @@ import { useRef, useEffect } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 /**
- * Custom circular cursor — desktop / fine-pointer only.
+ * Custom cursor — small filled dot, desktop / fine-pointer only.
  * Hides the native cursor via `.has-custom-cursor` on <html>.
- * Scales up when hovering links, buttons, and project images.
+ * Outer element (JS) only ever sets position (lerped for a smooth
+ * trailing follow); the inner dot's scale/ring on hover is plain CSS
+ * on `.is-hover`, so the two never fight over `transform`.
  */
 export default function Cursor() {
   const cursorRef = useRef(null);
@@ -18,7 +20,8 @@ export default function Cursor() {
     // exactly the kind of motion prefers-reduced-motion exists to opt
     // out of, and the native cursor already does this job functionally.
     if (prefersReduced) return;
-    // Only activate on devices with a precise pointer (mouse/trackpad)
+    // Only activate on devices with a precise pointer (mouse/trackpad) —
+    // touch/mobile keeps the native cursor (there isn't one to chase).
     if (!window.matchMedia('(pointer: fine)').matches) return;
 
     const cursor = cursorRef.current;
@@ -27,21 +30,28 @@ export default function Cursor() {
     document.documentElement.classList.add('has-custom-cursor');
     cursor.style.opacity = '1';
 
-    let x = -100;
-    let y = -100;
+    let targetX = window.innerWidth / 2;
+    let targetY = window.innerHeight / 2;
+    let x = targetX;
+    let y = targetY;
     let rafId;
 
     const onMove = (e) => {
-      x = e.clientX;
-      y = e.clientY;
+      targetX = e.clientX;
+      targetY = e.clientY;
     };
 
     const render = () => {
+      // ponytail: fixed 0.25 lerp factor, not frame-rate independent —
+      // fine at typical 60–120Hz, revisit with a delta-time factor if
+      // it ever feels off on very low refresh-rate displays.
+      x += (targetX - x) * 0.25;
+      y += (targetY - y) * 0.25;
       cursor.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`;
       rafId = requestAnimationFrame(render);
     };
 
-    // Delegate hover detection — scale up on any interactive element
+    // Delegate hover detection — ring/scale on any interactive element
     const INTERACTIVE = 'a, button, [role="button"], label, input, textarea, select';
     const onOver = (e) => {
       if (e.target.closest(INTERACTIVE)) {
@@ -63,5 +73,9 @@ export default function Cursor() {
     };
   }, [prefersReduced]);
 
-  return <div ref={cursorRef} className="custom-cursor" aria-hidden="true" />;
+  return (
+    <div ref={cursorRef} className="custom-cursor" aria-hidden="true">
+      <span className="custom-cursor__dot" />
+    </div>
+  );
 }

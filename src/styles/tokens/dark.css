@@ -1,35 +1,56 @@
 /* ═══════════════════════════════════════════════════
    DARK — overrides applied when data-theme="dark".
    Only properties that differ from light are listed.
-   Palette direction: near-black charcoal, warm off-white
-   text. Accent brown used only for highlights/CTAs.
+   Palette direction: deep navy/black, cool off-white text —
+   luxury-editorial, not SaaS. Primary UI (--c-primary) is graphite/
+   near-black even here; indigo (--c-accent) stays a quiet supporting
+   accent for borders, glass, glow, and hover highlights only.
 ═══════════════════════════════════════════════════ */
 [data-theme="dark"] {
-  /* ── Surfaces — charcoal, not brown ── */
-  --bg:      #0F0F0E;
-  --s1:      #181816;
-  --s2:      #1F1F1D;
-  --s3:      #252523;
-  --glass:   rgba(24,24,22,0.88);
-  --overlay: rgba(15,15,14,0.78);
+  /* ── Surfaces — deep navy, not charcoal ── */
+  --bg:      var(--navy-600);
+  --s1:      var(--navy-500);
+  --s2:      var(--navy-400);
+  --s3:      var(--navy-300);
+  --glass:   rgba(16,20,31,0.88);
+  --overlay: rgba(6,8,14,0.78);
 
-  /* ── Text — warm off-white, minimal brown tint ──
-     tx-3 lightened from #706866 (3.53:1 on --bg, 3.27:1 on --s1 —
-     both fail WCAG AA 4.5:1) to clear both. */
-  --tx-1:    #F4EFE7;
-  --tx-2:    #B8AEA2;
-  --tx-3:    #8C8684;
-  --tx-4:    #3E3B38;
-  --tx-link: #C8A882;
-  /* Text-safe accent for dark mode — see semantic.css for why this
-     exists separately from --c-accent. */
-  --tx-accent: #AE7855;
+  /* ── Glass surfaces — more translucent over dark navy than the
+     light-mode panel (a flat low-opacity white tint reads "muddy gray"
+     against near-black unless it stays this faint; the indigo border +
+     backdrop blur carry the rest of the "glass" read). ── */
+  --glass-bg:        rgba(255,255,255,0.06);
+  --glass-border:    var(--bd-a);
+  --glass-highlight: inset 0 1px 0 rgba(255,255,255,0.10);
+  --glass-shadow:    0 4px 20px rgba(0,0,0,0.35), var(--glow-s);
+  --glass-blur:      blur(20px) saturate(1.5);
 
-  /* ── Borders — translucent off-white, no solid brown ── */
-  --bd-1: rgba(244,239,231,0.08);
-  --bd-2: rgba(244,239,231,0.10);
-  --bd-3: rgba(244,239,231,0.16);
-  --bd-a: rgba(166,106,67,0.28);
+  /* ── Water droplets — Hero background only (see Hero.jsx). Stronger
+     indigo tint + a soft indigo-tinted shadow here than light mode —
+     this is the "catches blue/indigo light" read against the dark sky. */
+  --droplet-highlight: rgba(255,255,255,.55);
+  --droplet-tint:      rgba(65,68,107,.34);
+  --droplet-border:    rgba(237,241,247,.16);
+  --droplet-shadow:    0 0 10px rgba(65,68,107,.25), 0 2px 6px rgba(0,0,0,.35);
+
+  /* ── Text — cool off-white, no warm tint ──
+     tx-3 stays in the range that clears WCAG AA's 4.5:1 against both
+     --bg and --s1 (same role as light mode's tx-3 — just cool now). */
+  --tx-1:    var(--navy-50);
+  --tx-2:    var(--navy-100);
+  --tx-3:    var(--slate-300);
+  --tx-4:    var(--navy-200);
+  --tx-link: var(--tx-2);
+  /* Foreground-safe indigo for dark mode — indigo-700 (light mode's
+     value) only clears ~2:1 against this near-black bg, so dark mode
+     needs the brighter indigo-300 step instead. See semantic.css. */
+  --tx-accent: var(--indigo-300);
+
+  /* ── Borders — translucent cool off-white, no warm brown ── */
+  --bd-1: rgba(237,241,247,0.08);
+  --bd-2: rgba(237,241,247,0.10);
+  --bd-3: rgba(237,241,247,0.16);
+  --bd-a: rgba(65,68,107,0.28);
 
   /* ── Shadows ── */
   --sh-xs:   0 1px 2px rgba(0,0,0,.50);
@@ -38,18 +59,19 @@
   --sh-lift: 0 8px 40px rgba(0,0,0,.75), 0 2px 8px rgba(0,0,0,.50);
   --sh-nav:  0 1px 3px rgba(0,0,0,.55);
 
-  /* ── Glows — accent brown, used sparingly ── */
-  --glow-s:   0 0 18px rgba(166,106,67,.08);
-  --glow-m:   0 0 30px rgba(166,106,67,.14);
-  --glow-cta: 0 0 32px rgba(111,86,67,.22), 0 0 8px rgba(111,86,67,.14);
+  /* ── Glows — quiet indigo throughout, including the primary button's
+     own hover glow (see semantic.css). ── */
+  --glow-s:   0 0 18px rgba(65,68,107,.10);
+  --glow-m:   0 0 30px rgba(65,68,107,.16);
+  --glow-cta: 0 0 18px rgba(65,68,107,.22), 0 0 4px rgba(65,68,107,.16);
 
   /* ── Thumbnail overlay ── */
-  --thumb-from: rgba(15,15,14,0);
-  --thumb-to:   rgba(15,15,14,0.92);
+  --thumb-from: rgba(9,12,20,0);
+  --thumb-to:   rgba(9,12,20,0.92);
 
   /* ── Tag backgrounds ── */
-  --tag-a-bg: rgba(166,106,67,0.12);
-  --tag-m-bg: rgba(244,239,231,0.05);
+  --tag-a-bg: rgba(65,68,107,0.12);
+  --tag-m-bg: rgba(237,241,247,0.05);
 
   /* ── Placeholder art ── */
   --c-placeholder-bg: var(--s2);

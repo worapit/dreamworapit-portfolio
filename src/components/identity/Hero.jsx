@@ -4,6 +4,25 @@ import { useRef, useEffect } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import RotatingWord from './RotatingWord';
 
+// Fixed (not Math.random()) so server/client markup matches — hand-
+// varied left%/size/duration/delay reads as organic without risking a
+// hydration mismatch. Hidden on mobile via CSS. Three size tiers
+// (small 8–10px, medium 14–18px, large 22–28px) so the set feels like
+// real droplets of different weight, not a uniform dot grid — mostly
+// small/medium with large ones used sparingly to stay minimal.
+const DROPLETS = [
+  { left: '5%',  size: 9,  duration: 15,   delay: 0  },  // small
+  { left: '14%', size: 16, duration: 19,   delay: 4  },  // medium
+  { left: '23%', size: 24, duration: 17,   delay: 2  },  // large
+  { left: '33%', size: 10, duration: 21,   delay: 7  },  // small
+  { left: '43%', size: 15, duration: 16,   delay: 9  },  // medium
+  { left: '55%', size: 8,  duration: 20,   delay: 1  },  // small
+  { left: '65%', size: 18, duration: 18,   delay: 5  },  // medium
+  { left: '75%', size: 27, duration: 22,   delay: 11 },  // large
+  { left: '85%', size: 14, duration: 16.5, delay: 3  },  // medium
+  { left: '93%', size: 9,  duration: 19.5, delay: 8  },  // small
+];
+
 /**
  * Hero section — full-viewport intro with loader-coordinated entrance.
  * Listens for the 'w0rapit:loaded' event dispatched by PageWrapper.
@@ -11,6 +30,7 @@ import RotatingWord from './RotatingWord';
 export default function Hero() {
   const prefersReduced = useReducedMotion();
   const indicatorRef = useRef(null);
+  const dropletsRef = useRef(null);
 
   useEffect(() => {
     // Direct inline-style toggle (not a CSS class) — the entrance
@@ -81,12 +101,51 @@ export default function Hero() {
     };
   }, [prefersReduced]);
 
+  // Water-droplet mouse interaction — droplets gently push away from
+  // the cursor when it passes near them. Desktop/fine-pointer only
+  // (droplets are also CSS-hidden on mobile, see globals.css); the
+  // ambient upward float is plain CSS on .hero__droplet itself, this
+  // only ever touches the separate .hero__droplet-inner transform so
+  // the two never fight over the same property.
+  useEffect(() => {
+    if (prefersReduced || typeof window === 'undefined') return;
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+    if (!dropletsRef.current) return;
+
+    let cancelled = false;
+    let cleanup = () => {};
+    import('../../styles/motion/presets').then(({ dropletRepulsion }) => {
+      if (cancelled) return;
+      dropletRepulsion(dropletsRef.current).then((fn) => {
+        if (cancelled) { fn(); return; }
+        cleanup = fn;
+      });
+    });
+    return () => { cancelled = true; cleanup(); };
+  }, [prefersReduced]);
+
   return (
     <section className="hero" id="home" aria-labelledby="hero-h1">
-      {/* Atmospheric background glows */}
+      {/* Atmospheric background glows + floating water droplets */}
       <div className="hero__bg" aria-hidden="true">
         <div className="hero__glow-br" />
         <div className="hero__glow-tl" />
+        <div ref={dropletsRef} className="hero__droplets">
+          {DROPLETS.map((d, i) => (
+            <span
+              key={i}
+              className="hero__droplet"
+              style={{
+                left: d.left,
+                '--dd': `${d.duration}s`,
+                '--ddelay': `${d.delay}s`,
+                '--dsize': `${d.size}px`,
+              }}
+            >
+              <span className="hero__droplet-inner" />
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="wrap hero__wrap">
@@ -98,17 +157,14 @@ export default function Hero() {
               <span className="hero__name">Worapit M.</span>
             </div>
 
-            {/* 2. Headline — exactly three fixed lines; "digital" is a
-                live word carousel (digital/PropTech/EdTech). */}
+            {/* 2. Headline — two fixed lines; "digital" is a live word
+                carousel (digital/PropTech/EdTech). */}
             <h1 className="hero__h1" id="hero-h1">
               <span className="hero__headline-line" data-gsap="" data-hero-headline="">
                 Creating <RotatingWord />
               </span>
               <span className="hero__headline-line" data-gsap="" data-hero-headline="">
-                products that balance
-              </span>
-              <span className="hero__headline-line" data-gsap="" data-hero-headline="">
-                user needs with business goals.
+                products that drive value.
               </span>
             </h1>
 
@@ -127,7 +183,9 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* 5. Scroll cue — minimal, no label, just two chevrons */}
+      {/* 5. Scroll cue — "Featured Work" label + a single chevron.
+          href="#work" + global scroll-behavior:smooth (html, see
+          globals.css) already smooth-scrolls to the Work section. */}
       <a
         ref={indicatorRef}
         href="#work"
@@ -136,22 +194,18 @@ export default function Hero() {
         data-hero-scroll=""
         aria-label="Scroll to Featured Work"
       >
-        <span className="hero__indicator-chevrons" aria-hidden="true">
-          {[0, 1].map((i) => (
-            <svg
-              key={i}
-              className="hero__indicator-chevron"
-              style={{ '--i': i }}
-              width="16" height="16" viewBox="0 0 16 16" fill="none"
-            >
-              <path
-                d="M4 6l4 4 4-4"
-                stroke="currentColor" strokeWidth="1.5"
-                strokeLinecap="round" strokeLinejoin="round"
-              />
-            </svg>
-          ))}
-        </span>
+        <span className="hero__indicator-label">Featured Work</span>
+        <svg
+          className="hero__indicator-chevron"
+          width="16" height="16" viewBox="0 0 16 16" fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M4 6l4 4 4-4"
+            stroke="currentColor" strokeWidth="1.5"
+            strokeLinecap="round" strokeLinejoin="round"
+          />
+        </svg>
       </a>
     </section>
   );

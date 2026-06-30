@@ -4,7 +4,6 @@ import { useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { getProjectSectionId } from '../../lib/projects';
-import { BREAKPOINT_MD } from '../../lib/breakpoints';
 import ProjectPlaceholder from './ProjectPlaceholder';
 
 export default function ProjectCard({
@@ -14,41 +13,52 @@ export default function ProjectCard({
   const artRef  = useRef(null);
   const prefersReduced = useReducedMotion();
 
-  // Scroll reveal: scale 0.985 → 1, opacity 0.9 → 1, y 24 → 0, once,
-  // the first time the card scrolls into view. Independent of scroll
-  // position/snap state otherwise — it doesn't care how the card got
-  // into view (native scroll, scroll-snap settling, or a dot click),
-  // it only ever fires the one time. See scaleReveal in scroll.js.
+  // Scroll reveal: scale 0.98 → 1, opacity 0.9 → 1, y 32 → 0, once,
+  // the first time the card scrolls into view (scaleReveal) — then a
+  // continuous dip (scale 1 → 0.985, opacity slightly down) as it
+  // scrolls past center and starts exiting the top (cardLeave). The
+  // two never overlap: cardLeave's scrub window only starts once the
+  // card is centered, well after scaleReveal's once-fired entrance has
+  // already finished. See scroll.js.
+  //
+  // Image parallax (y -24 → 24, scale 1.03 → 1) runs on the outer art
+  // layer for the card's whole transit through the viewport.
+  //
+  // Hover (image zoom, card lift, arrow shift, glow) is plain CSS on
+  // `.proj-card:hover` — no JS/GSAP needed for a state that's just
+  // "is the pointer over this element." The art's hover-zoom lives on
+  // a separate inner element so it never fights GSAP's inline
+  // transform on the outer parallax layer.
   useEffect(() => {
     if (prefersReduced || !cardRef.current) return;
     let cancelled = false;
-    let cleanup = () => {};
-    import('../../styles/motion/scroll').then(({ scaleReveal }) => {
+    const cleanups = [];
+    import('../../styles/motion/scroll').then(({ scaleReveal, cardLeave, imageParallax }) => {
       if (cancelled) return;
-      scaleReveal(cardRef.current).then((fn) => {
-        if (cancelled) { fn(); return; }
-        cleanup = fn;
-      });
+      scaleReveal(cardRef.current).then((fn) => { cancelled ? fn() : cleanups.push(fn); });
+      cardLeave(cardRef.current).then((fn) => { cancelled ? fn() : cleanups.push(fn); });
+      if (artRef.current) {
+        imageParallax(artRef.current).then((fn) => { cancelled ? fn() : cleanups.push(fn); });
+      }
     });
-    return () => { cancelled = true; cleanup(); };
+    return () => { cancelled = true; cleanups.forEach((fn) => fn()); };
   }, [prefersReduced]);
 
-  // Image zoom on hover — desktop only via GSAP. Listens on the whole
-  // card (not just the image) so it stays in sync with the CSS hover
-  // effects on the overlay text/arrow, which all key off `.proj-card:hover`.
+  // Proximity glow — CSS custom properties tracking pointer position
+  // within the card, consumed by the radial-gradient ring in
+  // .proj-card__glow (opacity itself is a plain CSS :hover transition).
   useEffect(() => {
     if (prefersReduced || typeof window === 'undefined') return;
-    if (window.innerWidth < BREAKPOINT_MD) return;
-    let cancelled = false;
-    let cleanup = () => {};
-    import('../../styles/motion/presets').then(({ hoverZoom }) => {
-      if (cancelled) return;
-      hoverZoom(cardRef.current, artRef.current).then((fn) => {
-        if (cancelled) { fn(); return; }
-        cleanup = fn;
-      });
-    });
-    return () => { cancelled = true; cleanup(); };
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+    const card = cardRef.current;
+    if (!card) return;
+    const onMove = (e) => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`);
+      card.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`);
+    };
+    card.addEventListener('mousemove', onMove);
+    return () => card.removeEventListener('mousemove', onMove);
   }, [prefersReduced]);
 
   const cardClass = ['proj-card', featured && 'proj-card--featured']
@@ -63,12 +73,19 @@ export default function ProjectCard({
           aria-label={`View ${title} case study`}
         >
           <div ref={artRef} className="proj-card__art">
-            <ProjectPlaceholder size={36} />
+            <div className="proj-card__art-inner">
+              <ProjectPlaceholder size={36} />
+            </div>
           </div>
 
           {/* Permanent bottom shade — readability for the overlay text,
               not a hover-only effect (unlike the old below-image layout). */}
           <div className="proj-card__shade" aria-hidden="true" />
+
+          {/* Proximity glow ring — masked to just the border stroke,
+              radial-gradient centered on --mx/--my (set on mousemove
+              above), visible only on hover/focus. */}
+          <div className="proj-card__glow" aria-hidden="true" />
 
           {/* Overlay content — title/meta + description bottom-left,
               arrow bottom-right. Text is always visible; only the arrow

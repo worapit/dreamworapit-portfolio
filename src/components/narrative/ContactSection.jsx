@@ -1,7 +1,14 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+
+const CONTACT_LINKS = [
+  { label: 'Email', href: 'mailto:worapit.m@gmail.com' },
+  { label: 'Work', href: 'https://linkedin.com/in/worapit', external: true },
+  { label: 'Resume', href: '/resume', internal: true },
+];
 
 export default function ContactSection() {
   const sectionRef  = useRef(null);
@@ -52,18 +59,42 @@ export default function ContactSection() {
       aria-labelledby="contact-title"
     >
       <div className="wrap">
-        <div className="contact-content">
+        <div className="g12">
+          <div className="contact-grid">
 
-          <p ref={availRef} className="contact-avail">
-            Available for Full-time • Freelance • Collaborations
-          </p>
+            <div className="contact-content">
+              <p ref={availRef} className="contact-avail">
+                <span className="contact-avail__dot" aria-hidden="true" />
+                Available for Full-time • Freelance • Collaborations
+              </p>
 
-          <h2 ref={headlineRef} className="contact-headline" id="contact-title">
-            Ready to build
-            <br className="contact-br--hide-mobile" />
-            {' '}something meaningful?
-          </h2>
+              <h2 ref={headlineRef} className="contact-headline" id="contact-title">
+                Ready to build
+                <br className="contact-br--hide-mobile" />
+                {' '}something meaningful?
+              </h2>
+            </div>
 
+            <div className="contact-links" aria-label="Contact links">
+              {CONTACT_LINKS.map(({ label, href, external, internal }) => (
+                internal ? (
+                  <Link key={label} href={href} className="contact-link">
+                    {label}
+                  </Link>
+                ) : (
+                  <a
+                    key={label}
+                    href={href}
+                    className="contact-link"
+                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  >
+                    {label}
+                  </a>
+                )
+              ))}
+            </div>
+
+          </div>
         </div>
       </div>
     </section>

@@ -5,9 +5,10 @@ import ProjectCard from '../components/showcase/ProjectCard';
 import ProjectProgress from '../components/showcase/ProjectProgress';
 import ContactSection from '../components/narrative/ContactSection';
 import StackedReveal from '../components/layout/StackedReveal';
+import HomeAtmosphere from '../components/layout/HomeAtmosphere';
 
 export const metadata = generateMeta({
-  title: 'w0rapit — UX/UI Designer & Experience Storyteller',
+  title: 'w0rapit | design',
   path: '/',
 });
 
@@ -16,6 +17,8 @@ const HOME_PROJECTS = PROJECTS.filter((p) => p.showOnHome);
 export default function HomePage() {
   return (
     <>
+      <HomeAtmosphere />
+
       {/* ── HERO ── */}
       <Hero />
 
