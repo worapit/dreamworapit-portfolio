@@ -232,7 +232,7 @@ export default function Nav() {
                   a need users actually have. */}
               <Link
                 href="/#contact"
-                className="hidden sm:inline-flex btn btn--pr btn--sm h-9 px-[18px]"
+                className="hidden md:inline-flex btn btn--pr btn--sm h-9 px-[18px]"
               >
                 Get in Touch
               </Link>

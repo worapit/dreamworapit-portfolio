@@ -236,45 +236,6 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 @media(max-width:1023px){
   .home-atmosphere__spotlight { display:none; }
 }
-/* Floating particles — small water-droplet-like dots drifting slowly
-   upward into the dark sky. Paused until .is-active (set once the
-   loader's logo animation finishes, see HomeAtmosphere.jsx) so they
-   never compete with or run hidden behind the loader. transform +
-   opacity + blur only; animation-play-state, not mount/unmount, so
-   there's nothing to reflow. */
-.home-atmosphere__particles {
-  position:absolute; inset:0;
-}
-.home-atmosphere__particle {
-  position:absolute;
-  bottom:-4%;
-  width:var(--ps); height:var(--ps);
-  border-radius:var(--r-circle);
-  background:rgba(65,68,107,.6);
-  filter:blur(1px);
-  opacity:0;
-  animation:home-particle-float var(--pd) var(--pdelay) cubic-bezier(0.33,0,0.2,1) infinite;
-  animation-play-state:paused;
-}
-.home-atmosphere.is-active .home-atmosphere__particle {
-  animation-play-state:running;
-}
-@keyframes home-particle-float {
-  0%   { transform:translateY(0) scale(0.8); opacity:0; filter:blur(1px); }
-  12%  { opacity:.5; }
-  55%  { opacity:.3; filter:blur(1.5px); }
-  92%  { opacity:0; }
-  100% { transform:translateY(-65vh) scale(1.1); opacity:0; filter:blur(2px); }
-}
-/* Simplify on mobile — fewer pixels worth animating, and one less
-   thing competing for attention on a small screen. */
-@media(max-width:767px){
-  .home-atmosphere__particles { display:none; }
-}
-@media(prefers-reduced-motion:reduce){
-  .home-atmosphere__particle { animation:none; opacity:0; }
-}
-
 /* 7. Hero */
 .hero {
   position:relative; min-height:100svh;
@@ -295,47 +256,6 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 [data-theme="light"] .hero__glow-br { background:radial-gradient(ellipse at bottom right,rgba(65,68,107,.06),transparent 64%); }
 [data-theme="light"] .hero__glow-tl { background:radial-gradient(ellipse at top left,rgba(65,68,107,.03),transparent 60%); }
 
-/* Water droplets — slow upward float (CSS keyframe, transform+opacity
-   only) on the outer .hero__droplet; cursor repulsion (GSAP, see
-   dropletRepulsion in presets.js) only ever touches the inner element's
-   transform, so the two never collide on the same property. The inner
-   element's radial-gradient highlight + border + shadow (all via the
-   --droplet-* tokens, semantic.css/dark.css) give each one a glassy,
-   theme-aware bead look instead of a flat dot. Desktop only — hidden
-   on mobile and reduced-motion. */
-.hero__droplets {
-  position:absolute; inset:0;
-  pointer-events:none;
-}
-.hero__droplet {
-  position:absolute;
-  bottom:-6%;
-  width:var(--dsize); height:var(--dsize);
-  animation:heroDropletFloat var(--dd) var(--ddelay) cubic-bezier(0.33,0,0.2,1) infinite;
-}
-.hero__droplet-inner {
-  display:block; width:100%; height:100%;
-  border-radius:var(--r-circle);
-  background:radial-gradient(circle at 30% 26%, var(--droplet-highlight), var(--droplet-tint) 55%, transparent 78%);
-  border:1px solid var(--droplet-border);
-  box-shadow:var(--droplet-shadow), inset 0 1px 1px rgba(255,255,255,.18);
-  backdrop-filter:blur(1px);
-  -webkit-backdrop-filter:blur(1px);
-  will-change:transform;
-}
-@keyframes heroDropletFloat {
-  0%   { transform:translateY(0); opacity:0; }
-  10%  { opacity:.7; }
-  55%  { opacity:.45; }
-  92%  { opacity:0; }
-  100% { transform:translateY(-58vh); opacity:0; }
-}
-@media(max-width:767px){
-  .hero__droplets { display:none; }
-}
-@media(prefers-reduced-motion:reduce){
-  .hero__droplet { animation:none; opacity:0; }
-}
 
 .hero__body {
   grid-column: 1 / span 10;
@@ -472,13 +392,26 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
    No top border — the Hero→Work transition is whitespace only, which
    reads more editorial than a hard rule between sections. */
 .work {
-  /* Fully transparent — the fixed .home-atmosphere backdrop shows
-     through unobstructed. Any per-section tint was creating a visible
-     rectangular panel against the dark sky; removing it lets the
-     atmospheric gradient continue unbroken through the project area. */
   padding-top:clamp(7rem,12vw,11rem);
   padding-bottom:clamp(1.5rem,3vw,3rem);
   position:relative; z-index:var(--z-2);
+}
+/* Soft gradient tint — fades in from hero, out toward contact.
+   z-index:-1 inside work's stacking context keeps cards above it. */
+.work::before {
+  content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(to bottom,
+    transparent                  0%,
+    rgba(235,239,245,.75)      20%,
+    rgba(235,239,245,.75)      80%,
+    transparent                100%);
+}
+[data-theme="dark"] .work::before {
+  background:linear-gradient(to bottom,
+    transparent          0%,
+    rgba(6,8,14,.48)   20%,
+    rgba(6,8,14,.48)   80%,
+    transparent        100%);
 }
 
 /* Wraps the card list so it shares the same grid placement below. */
@@ -867,53 +800,48 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
    11. Contact section
 ═══════════════════════════════════════════════════ */
 .contact-section {
-  /* No longer a full-screen panel — Work now flows straight into a
-     contained card, with a generous gap (120–160px desktop) standing
-     in for what used to be the "Reframe, reshape, redo." section.
-     No background of its own (the inner .wrap card supplies that) so
-     the fixed .home-atmosphere backdrop shows through this gap. */
   position:relative; z-index:var(--z-1);
   padding-top:clamp(5rem,12vw,10rem);
   padding-bottom:clamp(3rem,6vw,5rem);
+  /* overflow:visible — water canvas extends -6rem below into footer space */
+}
+/* Water canvas — fills section + extends into footer (bottom:-6rem).
+   Footer is position:relative z-index:2 so it renders above this canvas
+   while still being visually transparent over it. */
+.contact-water-wrap {
+  position:absolute; inset:0 0 -6rem; z-index:0; pointer-events:none;
+  opacity:0;
+}
+@media(prefers-reduced-motion:reduce){
+  .contact-water-wrap { display:none; }
 }
 
-/* ── The actual card — contained, rounded, gradient surface. Scoped to
-   `.contact-section > .wrap` (not bare `.wrap`) so the card treatment
-   stays local to Contact; `.wrap` itself already gives the max-width/
-   centering "aligned to the page grid" for free.
-   IMPORTANT: only padding-BLOCK is set here. `.wrap`'s own
-   padding-inline (16/24/80px at the same 768/1024 breakpoints Hero
-   uses) is left alone on purpose — a `padding` shorthand here would
-   override it with this card's much larger value, insetting Contact's
-   content further than Hero's and breaking the shared left/right
-   alignment between the two sections. */
-.contact-section > .wrap {
-  position:relative; z-index:1;
+/* ── The actual card — lives INSIDE .wrap's padding so its edges align
+   with the footer content (both sit at the same 16/24/80px inset from
+   the viewport). .wrap provides max-width + centering; .contact-card
+   is the styled surface inside it. */
+.contact-card {
+  position:relative; z-index:1; width:100%;
   border-radius:var(--r-3xl);
   overflow:hidden;
-  padding-block:clamp(2.5rem,8vw,7.5rem);
+  padding:clamp(2.5rem,8vw,7.5rem) clamp(1.5rem,5vw,4rem);
   background:linear-gradient(135deg, var(--s2) 0%, var(--s1) 55%, var(--s2) 100%);
   border:var(--bw-1) solid var(--bd-2);
   box-shadow:var(--sh-lift);
 }
-/* Corner light overlay — faint primary/secondary glow, clipped to the
-   card's rounded corners via the overflow:hidden above. */
-.contact-section > .wrap::before,
-.contact-section > .wrap::after {
+/* Corner light overlay — clipped by overflow:hidden above. */
+.contact-card::before,
+.contact-card::after {
   content:''; position:absolute; pointer-events:none; z-index:0;
 }
-.contact-section > .wrap::before {
+.contact-card::before {
   top:-12%; left:-6%; width:42vw; height:46vh;
   background:radial-gradient(ellipse at top left,rgba(65,68,107,.07),transparent 62%);
 }
-.contact-section > .wrap::after {
+.contact-card::after {
   bottom:-14%; right:-6%; width:50vw; height:50vh;
   background:radial-gradient(ellipse at bottom right,rgba(65,68,107,.08),transparent 64%);
 }
-/* .contact-grid now sits inside a .g12 grid (see ContactSection.jsx,
-   matching Hero/Work's own wrap > g12 structure) — span the full 12
-   columns so it keeps the same width it always had; descendant
-   selector tolerates that extra nesting level. */
 .contact-section .contact-grid { position:relative; z-index:1; grid-column:1 / -1; }
 
 @media(max-width:767px){
@@ -934,35 +862,35 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   text-align:center;
 }
 
-/* ── Contact links — Email / Work / Resume as liquid glass pill
-   buttons in a row, wrapping on small screens. ────────────────── */
+/* ── Contact links — text-only row, smooth underline on hover ───── */
 .contact-links {
   display:flex; flex-direction:row;
   flex-wrap:wrap;
-  gap:.875rem;
+  gap:2.25rem;
   justify-content:center;
 }
 .contact-link {
-  display:inline-flex; align-items:center; gap:.5rem;
-  padding:.75rem 1.5rem;
-  border-radius:var(--r-full);
-  background:var(--glass-bg);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  border:var(--bw-1) solid var(--glass-border);
-  box-shadow:var(--glass-highlight), var(--glass-shadow);
-  font-size:var(--fs-base); font-weight:500;
-  color:var(--tx-1); text-decoration:none;
-  transition:transform var(--dur-base) var(--ease-std), box-shadow var(--dur-base) var(--ease-std);
+  position:relative;
+  font-size:var(--fs-lg); font-weight:500;
+  color:var(--tx-2); text-decoration:none;
+  transition:color var(--dur-base) var(--ease-std);
+}
+.contact-link::after {
+  content:'';
+  position:absolute; bottom:-2px; left:0;
+  width:100%; height:1px;
+  background:currentColor;
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform var(--dur-base) var(--ease-std);
 }
 .contact-link:hover,
-.contact-link:focus-visible {
-  transform:translateY(-2px);
-  box-shadow:var(--glass-highlight), var(--glow-m), 0 8px 28px rgba(17,21,31,0.12);
-}
+.contact-link:focus-visible { color:var(--tx-1); }
+.contact-link:hover::after,
+.contact-link:focus-visible::after { transform:scaleX(1); }
 @media(prefers-reduced-motion:reduce){
   .contact-link { transition:none; }
-  .contact-link:hover,.contact-link:focus-visible { transform:none; }
+  .contact-link::after { transition:none; }
 }
 
 /* ── Headline — 64px desktop via --fs-contact-heading, fluid down to
@@ -983,12 +911,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .contact-br--hide-mobile            { display:none; }
 @media(min-width:860px) { .contact-br--hide-mobile { display:inline; } }
 
-/* ── Availability tag — sits above the headline now. Liquid-glass
-   pill with no hard outline: definition comes from the inset top
-   highlight plus a faint indigo reflection in the box-shadow (a 1px
-   shadow ring, not a border — softer, blends into the blur instead of
-   reading as an edge), and a tiny status dot. Premium and quiet
-   rather than a loud badge. ─────────────────────────────────────── */
+/* ── Availability tag — static liquid-glass pill ── */
 .contact-avail {
   display:inline-flex; align-items:center; gap:.5rem;
   padding:.625rem 1.125rem;
@@ -996,34 +919,25 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   background:var(--glass-bg);
   backdrop-filter:var(--glass-blur);
   -webkit-backdrop-filter:var(--glass-blur);
-  border:none;
-  box-shadow:var(--glass-highlight), 0 0 0 1px rgba(65,68,107,.08);
+  box-shadow:var(--glass-highlight), 0 0 0 1px var(--bd-a);
   font-size:var(--fs-base); font-weight:500;
   color:var(--tx-2);
-  transition:box-shadow var(--dur-base) var(--ease-std), background-color var(--dur-base) var(--ease-std);
-}
-.contact-avail:hover {
-  box-shadow:var(--glass-highlight), 0 0 0 1px rgba(65,68,107,.16), var(--glow-s);
 }
 .contact-avail__dot {
   width:6px; height:6px; flex-shrink:0;
   border-radius:var(--r-circle);
-  background:var(--c-success);
-  box-shadow:0 0 0 3px rgba(122,140,110,0.18);
-  animation:contactAvailDot 2.6s ease-in-out infinite;
-}
-@keyframes contactAvailDot {
-  0%,100% { opacity:1; }
-  50%     { opacity:.55; }
-}
-@media(prefers-reduced-motion:reduce){
-  .contact-avail__dot { animation:none; }
+  background:var(--avail-dot);
+  box-shadow:0 0 0 3px var(--avail-dot-halo);
 }
 
-/* ── 12. Footer — no background/border, just copy + icons ────── */
+/* ── 12. Footer — transparent over the contact water canvas.
+   position:relative + z-index:2 places it above the contact-section
+   stacking context (z-index:1) so footer content renders over the water
+   while the transparent background lets the water show through. */
 .footer {
   background:none;
   padding-block:1.375rem;
+  position:relative; z-index:2;
 }
 .footer__row {
   display:flex; align-items:center;

@@ -34,15 +34,9 @@
   --glass-shadow:    0 4px 20px rgba(17,21,31,0.06), var(--glow-s);
   --glass-blur:      blur(20px) saturate(1.5);
 
-  /* ── Water droplets — Hero background only (see Hero.jsx). Light
-     mode needs a visible edge/shadow to read as a bead against a
-     light page (a plain bright highlight would just blend in); the
-     indigo tint stays faint here since "catching blue/indigo light"
-     is the dark-mode read — see dark.css for that contrast. ── */
-  --droplet-highlight: rgba(255,255,255,.65);
-  --droplet-tint:      rgba(65,68,107,.16);
-  --droplet-border:    rgba(17,21,31,.12);
-  --droplet-shadow:    0 2px 6px rgba(17,21,31,.10);
+  /* ── Availability pill dot ── */
+  --avail-dot:      var(--indigo-500);   /* #41446B — muted indigo */
+  --avail-dot-halo: rgba(65,68,107,.12);
 
   /* ── Text — cool navy/slate, same contrast discipline as before:
      tx-3 stays in the range that clears WCAG AA's 4.5:1 against both

@@ -25,13 +25,9 @@
   --glass-shadow:    0 4px 20px rgba(0,0,0,0.35), var(--glow-s);
   --glass-blur:      blur(20px) saturate(1.5);
 
-  /* ── Water droplets — Hero background only (see Hero.jsx). Stronger
-     indigo tint + a soft indigo-tinted shadow here than light mode —
-     this is the "catches blue/indigo light" read against the dark sky. */
-  --droplet-highlight: rgba(255,255,255,.55);
-  --droplet-tint:      rgba(65,68,107,.34);
-  --droplet-border:    rgba(237,241,247,.16);
-  --droplet-shadow:    0 0 10px rgba(65,68,107,.25), 0 2px 6px rgba(0,0,0,.35);
+  /* ── Availability pill dot ── */
+  --avail-dot:      var(--indigo-300);       /* #7A7EA8 — soft lavender */
+  --avail-dot-halo: rgba(148,153,200,.20);
 
   /* ── Text — cool off-white, no warm tint ──
      tx-3 stays in the range that clears WCAG AA's 4.5:1 against both

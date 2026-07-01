@@ -192,9 +192,12 @@ function makeProgram(gl, vert, frag) {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function WaterBackground() {
+export default function WaterBackground({ strength = 0.72 }) {
   const canvasRef      = useRef(null);
   const prefersReduced = useReducedMotion();
+  const strengthRef    = useRef(strength);
+  // Keep strengthRef current without re-initialising the WebGL context.
+  useEffect(() => { strengthRef.current = strength; }, [strength]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -261,12 +264,14 @@ export default function WaterBackground() {
     }
 
     // ── Resize ────────────────────────────────────────────────────────────────
-    // Render at CSS pixel resolution (no DPR); subtle blur from upscaling
-    // suits the diffuse water aesthetic and keeps the GPU load low.
+    // Cap DPR at 2 — 3× screens (many Androids) are GPU overkill for a
+    // diffuse shader, and anything below 1.5× gets a free sharpness boost
+    // without meaningfully increasing fill-rate on modern phones.
     function resize() {
       const rect    = canvas.getBoundingClientRect();
-      canvas.width  = Math.round(rect.width);
-      canvas.height = Math.round(rect.height);
+      const dpr     = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width  = Math.round(rect.width  * dpr);
+      canvas.height = Math.round(rect.height * dpr);
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform2f(uRes, canvas.width, canvas.height);
     }
@@ -307,13 +312,10 @@ export default function WaterBackground() {
       const x    = e.clientX - rect.left;
       const y    = e.clientY - rect.top;
       if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
-      addRipple(x / rect.width, y / rect.height, 0.72);
+      addRipple(x / rect.width, y / rect.height, strengthRef.current);
     }
 
-    // Touch gets a single light ripple per tap, not a continuous
-    // finger-follow trail — "disable heavy interactions on mobile, use
-    // subtle movement only" per the design brief. touchmove is
-    // intentionally not wired up here.
+    // Touch gets a single light ripple per tap, not a continuous trail.
     function onTouchStart(e) {
       const rect = canvas.getBoundingClientRect();
       const t    = e.touches[0];
@@ -321,13 +323,20 @@ export default function WaterBackground() {
       const x = t.clientX - rect.left;
       const y = t.clientY - rect.top;
       if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
-      addRipple(x / rect.width, y / rect.height, 0.40);
+      addRipple(x / rect.width, y / rect.height, strengthRef.current * 0.55);
     }
 
     function onVisible() { paused = document.hidden; }
 
+    // Pause when scrolled off-screen — avoids burning GPU on an invisible canvas.
+    const io = new IntersectionObserver(
+      ([entry]) => { paused = !entry.isIntersecting; },
+      { threshold: 0 }
+    );
+
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
+    io.observe(canvas);
 
     resize();
     rafId = requestAnimationFrame(loop);
@@ -340,6 +349,7 @@ export default function WaterBackground() {
       cancelAnimationFrame(rafId);
       ro.disconnect();
       mo.disconnect();
+      io.disconnect();
       if (isFine) window.removeEventListener('mousemove',  onMouseMove);
       window.removeEventListener('touchstart',         onTouchStart);
       document.removeEventListener('visibilitychange', onVisible);
