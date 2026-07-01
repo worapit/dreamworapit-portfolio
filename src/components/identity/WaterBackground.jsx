@@ -51,16 +51,28 @@ float fbm(vec2 p) {
 }
 
 // ─── Caustic pattern ──────────────────────────────────────────────────────────
-// Two FBM fields moving at different rates; their difference, fed through
-// sin(), produces interference bands that look like sunlight caustics.
+// Ray-convergence caustics: iteratively distorts a point on the complex
+// plane and accumulates 1/distance to the distorted grid. This is the
+// standard technique for the fine, woven net of bright threads real
+// sunlit water casts — plain FBM noise reads as soft "clouds" instead,
+// which is too blobby to pass as caustics. Occasional exact-zero
+// denominators produce a stray Inf/0 pixel for a single frame; visually
+// unnoticeable and self-corrects next frame as the pattern moves on.
 float caustic(vec2 uv, float t) {
-  float ar = u_res.x / u_res.y;
-  vec2 p   = uv * vec2(ar, 1.0) * 2.6;
-  float f1 = fbm(p * 0.9  + vec2(t * 0.038, t * 0.027));
-  float f2 = fbm(p * 1.1  - vec2(t * 0.031, t * 0.048) + vec2(3.7, 1.9));
-  float c  = sin((f1 - f2) * 10.0 + t * 0.38) * 0.5 + 0.5;
-  // Two-tier power: broad glow (3.5) + sharp focal spots (8.0)
-  return pow(c, 3.5) * 0.78 + pow(c, 8.0) * 0.22;
+  float ar  = u_res.x / u_res.y;
+  vec2  uv2 = uv * vec2(ar, 1.0);
+  vec2  p   = mod(uv2 * 6.28318, 6.28318) - 250.0;
+  vec2  i   = p;
+  float c   = 1.0;
+  float inten = 0.005;
+  for (int n = 0; n < 5; n++) {
+    float tn = t * (1.0 - (3.5 / float(n + 1)));
+    i = p + vec2(cos(tn - i.x) + sin(tn + i.y), sin(tn - i.y) + cos(tn + i.x));
+    c += 1.0 / length(vec2(p.x / (sin(i.x + tn) / inten), p.y / (cos(i.y + tn) / inten)));
+  }
+  c /= 5.0;
+  c = 1.17 - pow(c, 1.4);
+  return clamp(pow(abs(c), 8.0), 0.0, 1.0);
 }
 
 // ─── Ambient traveling waves ──────────────────────────────────────────────────
@@ -112,14 +124,14 @@ void main() {
   float hy = waveH(uv+vec2(0.0,e), t) + rippleH(uv+vec2(0.0,e), u_time);
 
   // Surface normal — dz controls how much tilt modulates the colour
-  vec3 norm = normalize(vec3((h - hx) / e * 0.020, (h - hy) / e * 0.020, 1.0));
+  vec3 norm = normalize(vec3((h - hx) / e * 0.034, (h - hy) / e * 0.034, 1.0));
 
   // Caustics evaluated at the refraction-shifted UV
   float c = caustic(uv + norm.xy * 0.016, t * 1.5);
 
   // Reflection intensity from surface tilt
   float tilt = 1.0 - abs(norm.z);
-  float refl = clamp(tilt * 7.0, 0.0, 1.0);
+  float refl = clamp(tilt * 8.0, 0.0, 1.0);
 
   // ─── Theme-aware palette ──────────────────────────────────────────────────
   // Light: white base + pale sky reflection
@@ -129,15 +141,20 @@ void main() {
   vec3 baseD = vec3(0.038, 0.052, 0.088);
   vec3 skyD  = vec3(0.120, 0.220, 0.420);
 
-  vec3 base      = mix(baseL, baseD, u_dark);
-  vec3 sky       = mix(skyL,  skyD,  u_dark);
-  float skyMix   = mix(0.062, 0.140, u_dark);
-  float caustAmt = mix(0.030, 0.020, u_dark);
-  float shadowAmt= mix(0.012, 0.009, u_dark);
+  vec3 base       = mix(baseL, baseD, u_dark);
+  vec3 sky        = mix(skyL,  skyD,  u_dark);
+  float skyMix    = mix(0.028, 0.090, u_dark);
+  float causticFloor = mix(0.940, 0.560, u_dark); // gap brightness relative to base
+  float sparkleAmt   = mix(0.050, 0.130, u_dark);
 
+  // base is already near-white in light mode, so additive brightening
+  // has no headroom and instantly clips to flat white — the woven net
+  // has to read as *dimming the gaps* instead, with the bright threads
+  // (c→1) returning to full base brightness, plus a small additive
+  // sparkle right at the brightest thread cores.
   vec3 col = mix(base, sky, refl * skyMix);
-  col += (c - 0.45) * caustAmt;   // caustic bright patches
-  col -= (1.0 - c)  * shadowAmt;  // subtle inter-caustic shadow
+  col *= mix(causticFloor, 1.0, c);
+  col += pow(c, 6.0) * sparkleAmt;
   col  = clamp(col, 0.0, 1.0);
 
   gl_FragColor = vec4(col, 1.0);
@@ -175,7 +192,7 @@ function makeProgram(gl, vert, frag) {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function WaterHeroBackground() {
+export default function WaterBackground() {
   const canvasRef      = useRef(null);
   const prefersReduced = useReducedMotion();
 
@@ -261,17 +278,11 @@ export default function WaterHeroBackground() {
     });
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-    // ── Ambient ripple sources ─────────────────────────────────────────────────
-    // [uvX, uvY, intervalMs, nextFireMs] — staggered so multiple sources
-    // don't fire in the same frame and look like a single event.
-    const AMBIENT = [
-      [0.22, 0.32, 2400, 0],
-      [0.68, 0.58, 3100, 900],
-      [0.44, 0.74, 1850, 1700],
-      [0.78, 0.22, 3650, 420],
-    ];
-
     // ── Animation loop ────────────────────────────────────────────────────────
+    // No auto-spawned ripples here — waveH already supplies the "subtle,
+    // slow base movement"; ripples only ever come from real pointer input
+    // (see addRipple calls in the event handlers below), so the surface
+    // stays calm until something actually touches it.
     let rafId  = 0;
     let paused = false;
     const t0   = performance.now();
@@ -281,15 +292,6 @@ export default function WaterHeroBackground() {
       if (paused) return;
 
       elapsed = (nowMs - t0) / 1000;
-
-      for (const src of AMBIENT) {
-        if (nowMs >= src[3]) {
-          // Subtle strength variation for organic feel
-          const str = 0.20 + Math.sin(elapsed * 0.7 + src[0] * 6.3) * 0.07;
-          addRipple(src[0], src[1], str);
-          src[3] = nowMs + src[2] + Math.sin(elapsed * 1.1 + src[1] * 4.7) * 200;
-        }
-      }
 
       gl.uniform1f(uTime, elapsed);
       gl.uniform1f(uDark, isDark);
@@ -308,15 +310,18 @@ export default function WaterHeroBackground() {
       addRipple(x / rect.width, y / rect.height, 0.72);
     }
 
-    function onTouch(e) {
+    // Touch gets a single light ripple per tap, not a continuous
+    // finger-follow trail — "disable heavy interactions on mobile, use
+    // subtle movement only" per the design brief. touchmove is
+    // intentionally not wired up here.
+    function onTouchStart(e) {
       const rect = canvas.getBoundingClientRect();
-      for (let i = 0; i < e.touches.length; i++) {
-        const t  = e.touches[i];
-        const x  = t.clientX - rect.left;
-        const y  = t.clientY - rect.top;
-        if (x < 0 || y < 0 || x > rect.width || y > rect.height) continue;
-        addRipple(x / rect.width, y / rect.height, 0.60);
-      }
+      const t    = e.touches[0];
+      if (!t) return;
+      const x = t.clientX - rect.left;
+      const y = t.clientY - rect.top;
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
+      addRipple(x / rect.width, y / rect.height, 0.40);
     }
 
     function onVisible() { paused = document.hidden; }
@@ -328,8 +333,7 @@ export default function WaterHeroBackground() {
     rafId = requestAnimationFrame(loop);
 
     if (isFine) window.addEventListener('mousemove',  onMouseMove, { passive: true });
-    window.addEventListener('touchstart',         onTouch,     { passive: true });
-    window.addEventListener('touchmove',          onTouch,     { passive: true });
+    window.addEventListener('touchstart',         onTouchStart, { passive: true });
     document.addEventListener('visibilitychange', onVisible);
 
     return () => {
@@ -337,8 +341,7 @@ export default function WaterHeroBackground() {
       ro.disconnect();
       mo.disconnect();
       if (isFine) window.removeEventListener('mousemove',  onMouseMove);
-      window.removeEventListener('touchstart',         onTouch);
-      window.removeEventListener('touchmove',          onTouch);
+      window.removeEventListener('touchstart',         onTouchStart);
       document.removeEventListener('visibilitychange', onVisible);
       // WebGL resource cleanup
       gl.deleteProgram(prog);

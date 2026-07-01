@@ -3,7 +3,7 @@
 import { useRef, useEffect } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import RotatingWord from './RotatingWord';
-import WaterHeroBackground from './WaterHeroBackground';
+import WaterBackground from './WaterBackground';
 
 // Fixed (not Math.random()) so server/client markup matches — hand-
 // varied left%/size/duration/delay reads as organic without risking a
@@ -127,7 +127,7 @@ export default function Hero() {
 
   return (
     <section className="hero" id="home" aria-labelledby="hero-h1">
-      <WaterHeroBackground />
+      <WaterBackground />
       {/* Atmospheric background glows + floating water droplets */}
       <div className="hero__bg" aria-hidden="true">
         <div className="hero__glow-br" />
