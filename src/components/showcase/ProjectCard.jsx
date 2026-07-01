@@ -13,22 +13,7 @@ export default function ProjectCard({
   const artRef  = useRef(null);
   const prefersReduced = useReducedMotion();
 
-  // Scroll reveal: scale 0.98 → 1, opacity 0.9 → 1, y 32 → 0, once,
-  // the first time the card scrolls into view (scaleReveal) — then a
-  // continuous dip (scale 1 → 0.985, opacity slightly down) as it
-  // scrolls past center and starts exiting the top (cardLeave). The
-  // two never overlap: cardLeave's scrub window only starts once the
-  // card is centered, well after scaleReveal's once-fired entrance has
-  // already finished. See scroll.js.
-  //
-  // Image parallax (y -24 → 24, scale 1.03 → 1) runs on the outer art
-  // layer for the card's whole transit through the viewport.
-  //
-  // Hover (image zoom, card lift, arrow shift, glow) is plain CSS on
-  // `.proj-card:hover` — no JS/GSAP needed for a state that's just
-  // "is the pointer over this element." The art's hover-zoom lives on
-  // a separate inner element so it never fights GSAP's inline
-  // transform on the outer parallax layer.
+ 
   useEffect(() => {
     if (prefersReduced || !cardRef.current) return;
     let cancelled = false;

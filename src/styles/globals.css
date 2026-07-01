@@ -472,24 +472,10 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
    No top border — the Hero→Work transition is whitespace only, which
    reads more editorial than a hard rule between sections. */
 .work {
-  /* No boxed "card" feel — no border-radius, no flat opaque fill.
-     transparent → tint → tint → transparent down the whole section
-     (fixed-length stops, not percentages, so the fade zones stay a
-     constant ~40vh regardless of how many projects make the section
-     tall) — Hero's background continues unbroken into the top fade,
-     and the bottom fade hands off the same way into Contact/the fixed
-     .home-atmosphere backdrop, which still shows through everywhere
-     here since this is never fully opaque. */
-  background:linear-gradient(
-    to bottom,
-    transparent 0,
-    rgba(65,68,107,.06) 40vh,
-    rgba(65,68,107,.06) calc(100% - 40vh),
-    transparent 100%
-  );
-  /* No heading anymore to carry the hero→work breathing room on its
-     own margin, so the section's own top padding is the one thing
-     that has to feel intentional here — kept generous. */
+  /* Fully transparent — the fixed .home-atmosphere backdrop shows
+     through unobstructed. Any per-section tint was creating a visible
+     rectangular panel against the dark sky; removing it lets the
+     atmospheric gradient continue unbroken through the project area. */
   padding-top:clamp(7rem,12vw,11rem);
   padding-bottom:clamp(1.5rem,3vw,3rem);
   position:relative; z-index:var(--z-2);
@@ -518,19 +504,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   position:relative;
   display:flex; align-items:center;
   width:100%;
-  /* No opaque fill — .work's own top/bottom fade and the fixed
-     .home-atmosphere backdrop need to read through continuously as
-     the project list scrolls, not get covered by an opaque per-section
-     panel. The nth-of-type rule below layers a barely-there tint on
-     top of that, not a replacement for it. */
-  transition:background-color var(--dur-page) var(--ease-std);
 }
-/* Background rhythm — every third project gets a touch more indigo
-   tint than its neighbors, so the list doesn't read as one flat
-   block — both values stay low enough to keep the atmosphere/fade
-   showing through underneath. */
-.proj-section:nth-of-type(3n+2) { background:rgba(65,68,107,.03); }
-.proj-section:nth-of-type(3n+3) { background:rgba(65,68,107,.05); }
 @media(max-width:767px){
   /* Mobile: min-height (a floor, not a fixed 100vh) — content can
      still grow it taller if needed, so there's no cropping risk when
@@ -566,7 +540,12 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   width:100%;
   height:min(80vh,820px);
   border-radius:var(--r-3xl);        /* 24px */
-  overflow:hidden;
+  /* overflow:clip instead of overflow:hidden — `clip` reliably paints-
+     clips compositor-layer children (the will-change:transform art div)
+     at the border-box boundary. `hidden` creates a scroll container and
+     can fail to clip promoted layers in Safari/Chrome, allowing the
+     art's placeholder background to bleed 32px above/below the card. */
+  overflow:clip;
   border:var(--bw-1) solid var(--glass-border);
   box-shadow:var(--glass-highlight);
   transition:transform var(--dur-350) var(--ease-expo), box-shadow var(--dur-350) var(--ease-expo);
@@ -940,55 +919,49 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   .contact-section { padding-top:clamp(3.5rem,8vw,6rem); }
 }
 
-/* ── Two-column layout — availability+headline on the left, contact
-   links on the right. Stacks on mobile/tablet; splits into a row only
-   once there's enough width (1024px) for both sides to breathe. ── */
+/* ── Single centered column — all content stacked and centered ── */
 .contact-grid {
   display:flex; flex-direction:column;
-  gap:3rem;
-}
-@media(min-width:1024px){
-  .contact-grid {
-    flex-direction:row;
-    align-items:center;
-    justify-content:space-between;
-    gap:4rem;
-  }
+  align-items:center;
+  text-align:center;
+  gap:2.5rem;
 }
 
-/* ── Final statement — left-aligned, not centered ─────────────── */
+/* ── Centered content block ───────────────────────────────────── */
 .contact-content {
-  display:flex; flex-direction:column; align-items:flex-start;
-  text-align:left;
-  max-width:640px;
-  flex:1 1 auto;
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center;
 }
 
-/* ── Contact links — Email / Work / Resume. Clean text links only: no
-   cards, no icons, no descriptions — one word each, an underline that
-   grows in from the left on hover/focus. Typography carries it. */
+/* ── Contact links — Email / Work / Resume as liquid glass pill
+   buttons in a row, wrapping on small screens. ────────────────── */
 .contact-links {
-  display:flex; flex-direction:column;
-  gap:clamp(1.25rem,2.5vw,1.75rem);
-  width:100%;
-}
-@media(min-width:1024px){
-  .contact-links { width:320px; flex-shrink:0; }
+  display:flex; flex-direction:row;
+  flex-wrap:wrap;
+  gap:.875rem;
+  justify-content:center;
 }
 .contact-link {
-  display:inline-block;
-  width:fit-content;
-  font-size:var(--fs-xl); font-weight:500;
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.75rem 1.5rem;
+  border-radius:var(--r-full);
+  background:var(--glass-bg);
+  backdrop-filter:var(--glass-blur);
+  -webkit-backdrop-filter:var(--glass-blur);
+  border:var(--bw-1) solid var(--glass-border);
+  box-shadow:var(--glass-highlight), var(--glass-shadow);
+  font-size:var(--fs-base); font-weight:500;
   color:var(--tx-1); text-decoration:none;
-  padding-bottom:1px;
-  background-image:linear-gradient(var(--tx-accent), var(--tx-accent));
-  background-position:0 100%; background-repeat:no-repeat; background-size:0% 1px;
-  transition:background-size var(--dur-base) var(--ease-std);
+  transition:transform var(--dur-base) var(--ease-std), box-shadow var(--dur-base) var(--ease-std);
 }
 .contact-link:hover,
-.contact-link:focus-visible { background-size:100% 1px; }
+.contact-link:focus-visible {
+  transform:translateY(-2px);
+  box-shadow:var(--glass-highlight), var(--glow-m), 0 8px 28px rgba(17,21,31,0.12);
+}
 @media(prefers-reduced-motion:reduce){
   .contact-link { transition:none; }
+  .contact-link:hover,.contact-link:focus-visible { transform:none; }
 }
 
 /* ── Headline — 64px desktop via --fs-contact-heading, fluid down to
@@ -1001,7 +974,8 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   letter-spacing:-.025em;
   line-height:1.0;
   color:var(--tx-1);
-  margin-top:1.75rem;
+  margin-top:1.5rem;
+  text-align:center;
 }
 
 /* Hide manual <br> below 860px so text wraps naturally on mobile */
