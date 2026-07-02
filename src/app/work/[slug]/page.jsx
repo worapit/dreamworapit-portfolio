@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getProject, getAllSlugs } from '../../../lib/projects';
 import { generateMeta } from '../../../lib/seo';
 import { projectSchema } from '../../../lib/jsonld';
+import ContactSection from '../../../components/narrative/ContactSection';
 
 /** Pre-render all known project slugs at build time */
 export function generateStaticParams() {
@@ -119,6 +120,8 @@ export default async function CaseStudyPage({ params }) {
           <Link href="/#contact" className="btn btn--pr">Start a Project →</Link>
         </div>
       </div>
+
+      <ContactSection variant="compact" />
     </div>
   );
 }

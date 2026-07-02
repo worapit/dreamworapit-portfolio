@@ -39,7 +39,7 @@ export default function HomePage() {
           <ProjectProgress projects={HOME_PROJECTS} />
         </section>
 
-        <ContactSection />
+        <ContactSection variant="home" />
       </StackedReveal>
     </>
   );

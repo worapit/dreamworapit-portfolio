@@ -1,5 +1,6 @@
 import { generateMeta } from '../../lib/seo';
 import Link from 'next/link';
+import ContactSection from '../../components/narrative/ContactSection';
 
 export const metadata = generateMeta({
   title: 'Résumé — Worapit · UX/UI Designer',
@@ -107,6 +108,8 @@ export default function ResumePage() {
         </section>
 
       </div>
+
+      <ContactSection variant="compact" />
     </div>
   );
 }

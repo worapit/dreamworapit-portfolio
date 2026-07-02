@@ -439,13 +439,12 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   width:100%;
 }
 @media(max-width:767px){
-  /* Mobile: min-height (a floor, not a fixed 100vh) — content can
-     still grow it taller if needed, so there's no cropping risk when
-     the browser chrome/address bar shows or hides. ~75vh keeps each
-     card a comfortable, glanceable size without feeling cramped. No
+  /* Mobile: no viewport-height floor at all — the section is just as
+     tall as its card (below, sized by aspect-ratio), so cards read as
+     real cards in a natural flow instead of full-screen slides. No
      scroll-snap or settle-helper on mobile either (see ProjectProgress
      and the media query below) — plain native scroll end to end. */
-  .proj-section { min-height:75vh; padding-block:3rem; }
+  .proj-section { padding-block:1.5rem; }
 }
 @media(min-width:768px){
   .proj-section {
@@ -481,20 +480,28 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   overflow:clip;
   border:var(--bw-1) solid var(--glass-border);
   box-shadow:var(--glass-highlight);
-  transition:transform var(--dur-350) var(--ease-expo), box-shadow var(--dur-350) var(--ease-expo);
+  /* Hover-lift animates the standalone `translate` property, not
+     `transform` — cardLeave (scroll.js) drives `transform` directly
+     (scale/y/rotateZ) via GSAP's scrubbed ScrollTrigger on this same
+     element; if hover also transitioned `transform`, every GSAP scrub
+     tick would restart this 350ms CSS transition and the scroll motion
+     would visibly lag behind the actual scroll position. `translate`
+     and `transform` are independent CSS properties that compose in the
+     final render, so the two animations never fight. */
+  transition:translate var(--dur-350) var(--ease-expo), box-shadow var(--dur-350) var(--ease-expo);
 }
 @media(min-width:768px){
   .proj-card:hover,
   .proj-card:focus-within {
-    transform:translateY(-4px);
+    translate:0 -4px;
     box-shadow:var(--glass-highlight), var(--sh-lift);
   }
 }
 @media(max-width:767px){
-  .proj-card { height:min(62vh,520px); }
-}
-@media(max-width:480px){
-  .proj-card { height:78vw; min-height:380px; }
+  /* Real card size, not a viewport-height slide — 1:1 keeps it a
+     glanceable square that sizes off the column width and lets the
+     page flow naturally instead of being pinned to vh. */
+  .proj-card { height:auto; aspect-ratio:1 / 1; }
 }
 
 /* Link fills the entire card — whole thing is clickable, and is the
@@ -801,6 +808,12 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 ═══════════════════════════════════════════════════ */
 .contact-section {
   position:relative; z-index:var(--z-1);
+  /* Home variant (default) — full-viewport, hero-style feel: the section
+     itself is the 100vh block and its content centers within it. svh
+     (not vh) matches Hero's own convention so mobile browser chrome
+     showing/hiding never crops it. */
+  min-height:100svh;
+  display:flex; align-items:center;
   padding-top:clamp(5rem,12vw,10rem);
   padding-bottom:clamp(3rem,6vw,5rem);
   /* overflow:visible — water canvas extends -6rem below into footer space */
@@ -848,6 +861,23 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   .contact-section { padding-top:clamp(3.5rem,8vw,6rem); }
 }
 
+/* ── Compact variant — every non-home page. Hugs its content instead of
+   filling the viewport: no min-height, no outer section padding: the
+   48–80px of breathing room lives entirely on .contact-card below, so
+   there's exactly one layer of vertical spacing instead of two stacked
+   ones. Width still comes from the shared .wrap the same as Footer, so
+   the card's edges land exactly where the page container's do. ────── */
+.contact-section--compact {
+  min-height:0;
+  display:block;
+  padding-top:0;
+  padding-bottom:0;
+}
+.contact-section--compact .contact-card {
+  padding-top:clamp(48px,6vw,80px);
+  padding-bottom:clamp(48px,6vw,80px);
+}
+
 /* ── Single centered column — all content stacked and centered ── */
 .contact-grid {
   display:flex; flex-direction:column;
@@ -862,35 +892,92 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   text-align:center;
 }
 
-/* ── Contact links — text-only row, smooth underline on hover ───── */
-.contact-links {
-  display:flex; flex-direction:row;
-  flex-wrap:wrap;
-  gap:2.25rem;
-  justify-content:center;
+/* ── Contact CTA — single outline button, opens the contact modal.
+   .btn--out already gives outline/rounded-full/subtle-hover/no-glow
+   (see globals.css §6 Buttons); nothing extra needed here beyond
+   spacing from the headline above. ───────────────────────────────── */
+.contact-cta { margin-top:.5rem; }
+
+/* ── Contact modal — full-screen scrim + centered form panel, slides
+   down from above with a fade. cubic-bezier(0.22,1,0.36,1) matches the
+   ease already used for this section's own scroll-reveal (see the
+   ContactSection component) and for project-card motion — the site's
+   one "premium settle" curve, reused here instead of inventing a
+   second one. ───────────────────────────────────────────────────── */
+.contact-modal {
+  position:fixed; inset:0; z-index:var(--z-modal);
+  display:flex; align-items:flex-start; justify-content:center;
+  overflow-y:auto;
+  padding:clamp(1.5rem,6vw,4rem) 1.25rem;
+  background:var(--overlay);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity var(--dur-page) cubic-bezier(0.22,1,0.36,1);
 }
-.contact-link {
-  position:relative;
-  font-size:var(--fs-lg); font-weight:500;
-  color:var(--tx-2); text-decoration:none;
-  transition:color var(--dur-base) var(--ease-std);
+.contact-modal.is-open { opacity:1; pointer-events:auto; }
+
+.contact-modal__panel {
+  position:relative; width:100%; max-width:520px;
+  margin-top:min(6vh,3rem);
+  background:var(--s1);
+  border:var(--bw-1) solid var(--bd-2);
+  border-radius:var(--r-3xl);
+  box-shadow:var(--sh-lift);
+  padding:clamp(2rem,5vw,2.75rem);
+  transform:translateY(-40px);
+  transition:transform var(--dur-page) cubic-bezier(0.22,1,0.36,1);
 }
-.contact-link::after {
-  content:'';
-  position:absolute; bottom:-2px; left:0;
-  width:100%; height:1px;
-  background:currentColor;
-  transform:scaleX(0);
-  transform-origin:left;
-  transition:transform var(--dur-base) var(--ease-std);
+.contact-modal.is-open .contact-modal__panel { transform:translateY(0); }
+
+.contact-modal__close {
+  position:absolute; top:1.25rem; right:1.25rem;
+  display:flex; align-items:center; justify-content:center;
+  width:34px; height:34px;
+  border-radius:var(--r-full);
+  border:var(--bw-1) solid var(--bd-2);
+  color:var(--tx-2);
+  transition:color var(--dur-base) var(--ease-std), border-color var(--dur-base) var(--ease-std), background-color var(--dur-base) var(--ease-std);
 }
-.contact-link:hover,
-.contact-link:focus-visible { color:var(--tx-1); }
-.contact-link:hover::after,
-.contact-link:focus-visible::after { transform:scaleX(1); }
+.contact-modal__close:hover { color:var(--tx-1); border-color:var(--bd-3); background:var(--s2); }
+
+.contact-modal__title {
+  font-family:var(--f-display);
+  font-size:var(--fs-2xl); font-weight:600;
+  color:var(--tx-1);
+}
+.contact-modal__sub {
+  margin-top:.375rem;
+  font-size:var(--fs-md); color:var(--tx-2);
+}
+
+.contact-modal__form {
+  display:flex; flex-direction:column; gap:1.125rem;
+  margin-top:1.75rem;
+}
+.contact-modal__field {
+  display:flex; flex-direction:column; gap:.4rem;
+  font-size:var(--fs-sm); font-weight:500; color:var(--tx-2);
+}
+.contact-modal__field input,
+.contact-modal__field textarea {
+  font-family:var(--f-body); font-size:var(--fs-md); color:var(--tx-1);
+  background:var(--bg);
+  border:var(--bw-1) solid var(--bd-2);
+  border-radius:var(--r-lg);
+  padding:.7rem .875rem;
+  resize:vertical;
+  transition:border-color var(--dur-base) var(--ease-std);
+}
+.contact-modal__field input:focus-visible,
+.contact-modal__field textarea:focus-visible { border-color:var(--c-accent); }
+
+.contact-modal__note {
+  font-size:var(--fs-sm); color:var(--tx-3); text-align:center;
+}
+
 @media(prefers-reduced-motion:reduce){
-  .contact-link { transition:none; }
-  .contact-link::after { transition:none; }
+  .contact-modal, .contact-modal__panel { transition:none; }
 }
 
 /* ── Headline — 64px desktop via --fs-contact-heading, fluid down to

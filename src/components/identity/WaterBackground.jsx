@@ -264,12 +264,18 @@ export default function WaterBackground({ strength = 0.72 }) {
     }
 
     // ── Resize ────────────────────────────────────────────────────────────────
-    // Cap DPR at 2 — 3× screens (many Androids) are GPU overkill for a
-    // diffuse shader, and anything below 1.5× gets a free sharpness boost
-    // without meaningfully increasing fill-rate on modern phones.
+    // Canvas backing store is sized in real device pixels (CSS size × DPR)
+    // so the shader renders crisp instead of being upscaled blurry by the
+    // browser. DPR is capped — and capped harder on mobile — since fill-
+    // rate cost grows with the square of DPR and phone GPUs are the ones
+    // that pay for it; the mobile/desktop split mirrors the `md` (768px)
+    // breakpoint the rest of the site already uses (see Nav.jsx). Recomputed
+    // every call so rotating a tablet across that breakpoint stays correct.
+    const mobileMq = window.matchMedia('(max-width: 767px)');
     function resize() {
       const rect    = canvas.getBoundingClientRect();
-      const dpr     = Math.min(window.devicePixelRatio || 1, 2);
+      const maxDpr  = mobileMq.matches ? 1.5 : 2;
+      const dpr     = Math.min(window.devicePixelRatio || 1, maxDpr);
       canvas.width  = Math.round(rect.width  * dpr);
       canvas.height = Math.round(rect.height * dpr);
       gl.viewport(0, 0, canvas.width, canvas.height);

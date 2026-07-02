@@ -1,22 +1,26 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
-import Link from 'next/link';
+import { useRef, useEffect, useState } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import WaterBackground from '../identity/WaterBackground';
+import ContactModal from './ContactModal';
 
-const CONTACT_LINKS = [
-  { label: 'Email',  href: 'mailto:worapit.m@gmail.com' },
-  { label: 'Work',   href: 'https://linkedin.com/in/worapit', external: true },
-  { label: 'Resume', href: '/resume', internal: true },
-];
-
-export default function ContactSection() {
-  const sectionRef   = useRef(null);
-  const headlineRef  = useRef(null);
-  const availRef     = useRef(null);
-  const waterWrapRef = useRef(null);
+/**
+ * @param {{ variant?: 'home' | 'compact' }} props
+ * - 'home': full 100vh treatment with the water background — used once,
+ *   on the home page's Work→Contact stack.
+ * - 'compact': hugs its content (small py, no water canvas, no vh) —
+ *   used on every other page so they all share one contact block
+ *   instead of each re-implementing their own CTA.
+ */
+export default function ContactSection({ variant = 'home' }) {
+  const isCompact     = variant === 'compact';
+  const sectionRef    = useRef(null);
+  const headlineRef   = useRef(null);
+  const availRef      = useRef(null);
+  const waterWrapRef  = useRef(null);
   const prefersReduced = useReducedMotion();
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     if (prefersReduced || !sectionRef.current) return;
@@ -32,7 +36,7 @@ export default function ContactSection() {
 
       const headline = headlineRef.current;
       const avail    = availRef.current;
-      const water    = waterWrapRef.current;
+      const water    = isCompact ? null : waterWrapRef.current;
       const ease     = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
       gsap.set(avail,    { opacity: 0, y: 16 });
@@ -71,59 +75,62 @@ export default function ContactSection() {
       trigEnter?.kill();
       trigExit?.kill();
     };
-  }, [prefersReduced]);
+  }, [prefersReduced, isCompact]);
 
   return (
-    <section
-      ref={sectionRef}
-      className="contact-section"
-      id="contact"
-      aria-labelledby="contact-title"
-    >
-      <div ref={waterWrapRef} className="contact-water-wrap" aria-hidden="true">
-        <WaterBackground strength={0.36} />
-      </div>
-      <div className="wrap">
-        <div className="contact-card">
-          <div className="g12">
-            <div className="contact-grid">
+    <>
+      <section
+        ref={sectionRef}
+        className={`contact-section${isCompact ? ' contact-section--compact' : ''}`}
+        id="contact"
+        aria-labelledby="contact-title"
+      >
+        {!isCompact && (
+          <div ref={waterWrapRef} className="contact-water-wrap" aria-hidden="true">
+            <WaterBackground strength={0.36} />
+          </div>
+        )}
+        <div className="wrap">
+          <div className="contact-card">
+            <div className="g12">
+              <div className="contact-grid">
 
-              <div className="contact-content">
-                <p ref={availRef} className="contact-avail">
-                  <span className="contact-avail__dot" aria-hidden="true" />
-                  Available for Freelance • Collaborations
-                </p>
+                <div className="contact-content">
+                  <p ref={availRef} className="contact-avail">
+                    <span className="contact-avail__dot" aria-hidden="true" />
+                    Available for Freelance • Collaborations
+                  </p>
 
-                <h2 ref={headlineRef} className="contact-headline" id="contact-title">
-                  Ready to build
-                  <br className="contact-br--hide-mobile" />
-                  {' '}something meaningful?
-                </h2>
+                  <h2 ref={headlineRef} className="contact-headline" id="contact-title">
+                    Ready to build
+                    <br className="contact-br--hide-mobile" />
+                    {' '}something meaningful?
+                  </h2>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn--out btn--lg contact-cta"
+                  aria-haspopup="dialog"
+                  aria-expanded={modalOpen}
+                  onClick={() => setModalOpen(true)}
+                >
+                  Contact Me
+                </button>
+
               </div>
-
-              <nav className="contact-links" aria-label="Contact links">
-                {CONTACT_LINKS.map(({ label, href, external, internal }) => (
-                  internal ? (
-                    <Link key={label} href={href} className="contact-link">
-                      {label}
-                    </Link>
-                  ) : (
-                    <a
-                      key={label}
-                      href={href}
-                      className="contact-link"
-                      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                    >
-                      {label}
-                    </a>
-                  )
-                ))}
-              </nav>
-
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Rendered as a sibling, not a child, of #contact — StackedReveal
+          drives a scroll-linked `transform` directly on #contact, and a
+          transform on an ancestor creates a new containing block for
+          `position:fixed` descendants. Nested here, the modal's
+          `inset:0` would resolve against #contact's box instead of the
+          viewport. */}
+      <ContactModal open={modalOpen} onClose={() => setModalOpen(false)} />
+    </>
   );
 }

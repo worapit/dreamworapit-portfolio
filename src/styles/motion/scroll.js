@@ -70,6 +70,7 @@ export async function scaleReveal(target, {
   fromScale   = 0.98,
   fromOpacity = 0.9,
   y           = 32,
+  fromRotate  = -1.2,
   duration    = 0.9,
 } = {}) {
   if (!target) return () => {};
@@ -78,7 +79,7 @@ export async function scaleReveal(target, {
   gsap.registerPlugin(CustomEase);
   const ease = CustomEase.create('projectEnter', '0.22, 1, 0.36, 1');
 
-  gsap.set(target, { opacity: fromOpacity, scale: fromScale, y });
+  gsap.set(target, { opacity: fromOpacity, scale: fromScale, y, rotateZ: fromRotate });
 
   const trigger = ScrollTrigger.create({
     trigger: target,
@@ -86,7 +87,7 @@ export async function scaleReveal(target, {
     once: true,
     onEnter() {
       gsap.to(target, {
-        opacity: 1, scale: 1, y: 0, duration, ease,
+        opacity: 1, scale: 1, y: 0, rotateZ: 0, duration, ease,
         clearProps: 'transform',
       });
     },
@@ -99,37 +100,48 @@ export async function scaleReveal(target, {
 }
 
 /**
- * Continuous scale/opacity dip as a card scrolls past its centered
- * resting position and starts exiting the top of the viewport.
+ * Continuous scale/opacity/y/tilt dip as a card scrolls past its
+ * centered resting position and starts exiting the top of the
+ * viewport — the "moving between project cards" transition.
  * Independent of scaleReveal above — starts from 'center center' so
  * its scrub window never overlaps scaleReveal's once-fired entrance
  * (which finishes well before the card reaches center).
  *
+ * scrub is a number (lag in seconds), not `true` — GSAP smooths the
+ * tween's catch-up to the scroll position instead of snapping 1:1 to
+ * it, which is what gives the motion its soft, inertial feel. This is
+ * still 100% scroll-driven (no wheel/touch listeners, no
+ * preventDefault) — native scroll stays the source of truth, GSAP is
+ * only smoothing how the transform visually follows it.
+ *
  * @param {Element} target
- * @param {{ toScale?: number; toOpacity?: number }} [opts]
+ * @param {{ toScale?: number; toOpacity?: number; toY?: number; toRotate?: number; lag?: number }} [opts]
  * @returns {Promise<() => void>} cleanup
  */
 export async function cardLeave(target, {
-  toScale   = 0.985,
+  toScale   = 0.97,
   toOpacity = 0.9,
+  toY       = -22,
+  toRotate  = 1.4,
+  lag       = 0.6,
 } = {}) {
   if (!target) return () => {};
   const { gsap, ScrollTrigger } = await getGSAP();
 
   const tween = gsap.to(target, {
-    scale: toScale, opacity: toOpacity, ease: 'none',
+    scale: toScale, opacity: toOpacity, y: toY, rotateZ: toRotate, ease: 'none',
     scrollTrigger: {
       trigger: target,
       start: 'center center',
       end: 'top top',
-      scrub: true,
+      scrub: lag,
     },
   });
 
   return () => {
     tween.scrollTrigger?.kill();
     tween.kill();
-    gsap.set(target, { clearProps: 'scale,opacity' });
+    gsap.set(target, { clearProps: 'transform,opacity' });
   };
 }
 

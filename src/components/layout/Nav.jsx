@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { useTheme } from '../../hooks/useTheme';
 
 const NAV_LINKS = [
-  { label: 'Work',  href: '/work'  },
-  { label: 'About', href: '/about' },
+  { label: 'Work',   href: '/work'   },
+  { label: 'About',  href: '/about'  },
+  { label: 'Resume', href: '/resume' },
 ];
 
 // Inner row — purely a flex layout (logo left, pill right) now that
@@ -230,9 +231,16 @@ export default function Nav() {
                   tap away in the mobile panel below — showing it
                   twice in <640px of width was the crowding risk, not
                   a need users actually have. */}
+              {/* !hidden / md:!inline-flex: .btn sets its own `display`
+                  (globals.css, loaded after Tailwind's utility layer), so
+                  at equal specificity it silently wins the cascade over
+                  plain `hidden`/`md:inline-flex` — same fix already used
+                  elsewhere in this pill for the same class of collision
+                  (see !p-2 / !mr-3 above). Without the `!`, this CTA
+                  rendered on mobile despite `hidden`. */}
               <Link
                 href="/#contact"
-                className="hidden md:inline-flex btn btn--pr btn--sm h-9 px-[18px]"
+                className="!hidden md:!inline-flex btn btn--pr btn--sm h-9 px-[18px]"
               >
                 Get in Touch
               </Link>

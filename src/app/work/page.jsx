@@ -2,6 +2,7 @@ import { generateMeta } from '../../lib/seo';
 import { PROJECTS } from '../../lib/projects';
 import WorkCard from '../../components/showcase/WorkCard';
 import WorkSectionNav from '../../components/showcase/WorkSectionNav';
+import ContactSection from '../../components/narrative/ContactSection';
 
 export const metadata = generateMeta({
   title: 'Work — w0rapit',
@@ -64,6 +65,8 @@ export default function WorkPage() {
         })}
 
       </div>
+
+      <ContactSection variant="compact" />
     </main>
   );
 }

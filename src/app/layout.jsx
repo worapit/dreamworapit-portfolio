@@ -44,12 +44,14 @@ export default function RootLayout({ children }) {
          * Runs synchronously before any CSS or JS, preventing the
          * flash of wrong theme on first paint.
          * Must be inline (not defer/async) to block the parser.
+         * Defaults to light (not system preference) when nothing is
+         * stored yet — matches useTheme.js, which resolves the same way.
          */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
   var s=localStorage.getItem('w-theme');
-  var t=s||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  var t=s||'light';
   document.documentElement.setAttribute('data-theme',t);
 })();`,
           }}

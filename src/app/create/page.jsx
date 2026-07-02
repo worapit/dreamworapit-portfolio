@@ -1,5 +1,6 @@
 import { generateMeta } from '../../lib/seo';
 import Link from 'next/link';
+import ContactSection from '../../components/narrative/ContactSection';
 
 export const metadata = generateMeta({
   title: 'Create — w0rapit',
@@ -69,6 +70,8 @@ export default function CreatePage() {
 
         </div>
       </div>
+
+      <ContactSection variant="compact" />
     </main>
   );
 }

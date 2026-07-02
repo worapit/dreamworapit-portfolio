@@ -1,6 +1,7 @@
 import { generateMeta } from '../../lib/seo';
 import Link from 'next/link';
 import TestimonialCarousel from '../../components/showcase/TestimonialCarousel';
+import ContactSection from '../../components/narrative/ContactSection';
 
 export const metadata = generateMeta({
   title: 'About — w0rapit',
@@ -156,6 +157,8 @@ export default function AboutPage() {
         </div>
         <TestimonialCarousel items={TESTIMONIALS} />
       </section>
+
+      <ContactSection variant="compact" />
 
     </main>
   );
