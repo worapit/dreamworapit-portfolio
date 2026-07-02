@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowUpRightIcon } from '@heroicons/react/24/outline';
 import ProjectPlaceholder from './ProjectPlaceholder';
 
 /**
@@ -43,13 +44,7 @@ export default function WorkCard({ title, company, year, slug, workSection }) {
           </div>
 
           <span className="work-card__arrow" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M7 17L17 7M9 7h8v8"
-                stroke="currentColor" strokeWidth="1.6"
-                strokeLinecap="round" strokeLinejoin="round"
-              />
-            </svg>
+            <ArrowUpRightIcon width={18} height={18} />
           </span>
         </div>
       </Link>

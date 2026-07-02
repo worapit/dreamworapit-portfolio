@@ -55,131 +55,88 @@ export async function fadeUp(targets, {
 }
 
 /**
- * Scale + rise + fade entrance triggered on scroll — for the
- * full-screen project case sections. Subtle and independent of any
- * scroll-position tracking elsewhere: this only ever fires once, the
- * first time a card scrolls into view, regardless of how it got there
- * (native scroll, scroll-snap settling, or a dot click).
+ * Full enter → center → leave scrub for featured project cards.
  *
- * @param {Element} target
- * @param {{ start?: string; fromScale?: number; fromOpacity?: number; y?: number; duration?: number }} [opts]
- * @returns {Promise<() => void>} cleanup
- */
-export async function scaleReveal(target, {
-  start       = 'top 82%',
-  fromScale   = 0.98,
-  fromOpacity = 0.9,
-  y           = 32,
-  fromRotate  = -1.2,
-  duration    = 0.9,
-} = {}) {
-  if (!target) return () => {};
-  const { gsap, ScrollTrigger } = await getGSAP();
-  const { CustomEase } = await import('gsap/CustomEase');
-  gsap.registerPlugin(CustomEase);
-  const ease = CustomEase.create('projectEnter', '0.22, 1, 0.36, 1');
-
-  gsap.set(target, { opacity: fromOpacity, scale: fromScale, y, rotateZ: fromRotate });
-
-  const trigger = ScrollTrigger.create({
-    trigger: target,
-    start,
-    once: true,
-    onEnter() {
-      gsap.to(target, {
-        opacity: 1, scale: 1, y: 0, rotateZ: 0, duration, ease,
-        clearProps: 'transform',
-      });
-    },
-  });
-
-  return () => {
-    trigger.kill();
-    gsap.set(target, { clearProps: 'all' });
-  };
-}
-
-/**
- * Continuous scale/opacity/y/tilt dip as a card scrolls past its
- * centered resting position and starts exiting the top of the
- * viewport — the "moving between project cards" transition.
- * Independent of scaleReveal above — starts from 'center center' so
- * its scrub window never overlaps scaleReveal's once-fired entrance
- * (which finishes well before the card reaches center).
+ * Three-phase motion linked to scroll position via scrub lag for
+ * inertial smoothing. `lag` is seconds — how long the visual animation
+ * takes to catch up to scroll progress:
+ *
+ *   entering  y:+35vh  scale:0.72  rotateZ:+3°  (below, tilted right)
+ *   center    y:0      scale:1     rotateZ: 0°   (settled, full size)
+ *   leaving   y:-30vh  scale:0.78  rotateZ:-2°  (above, tilted left)
+ *
+ * Also manages inner-image parallax: image drifts -24px→+24px and
+ * settles from 1.05→1 scale as the card transits the viewport.
+ *
+ * `will-change` is set only while the trigger is active and cleared on
+ * both enter and leave to avoid promoting layers unnecessarily.
  *
  * scrub is a number (lag in seconds), not `true` — GSAP smooths the
  * tween's catch-up to the scroll position instead of snapping 1:1 to
  * it, which is what gives the motion its soft, inertial feel. This is
  * still 100% scroll-driven (no wheel/touch listeners, no
- * preventDefault) — native scroll stays the source of truth, GSAP is
- * only smoothing how the transform visually follows it.
+ * preventDefault) — native scroll stays the source of truth.
  *
- * @param {Element} target
- * @param {{ toScale?: number; toOpacity?: number; toY?: number; toRotate?: number; lag?: number }} [opts]
+ * @param {Element}      target — .proj-card
+ * @param {Element|null} artEl  — .proj-card__art (image parallax), or null
+ * @param {{ lag?: number }} [opts]
  * @returns {Promise<() => void>} cleanup
  */
-export async function cardLeave(target, {
-  toScale   = 0.97,
-  toOpacity = 0.9,
-  toY       = -22,
-  toRotate  = 1.4,
-  lag       = 0.6,
-} = {}) {
+export async function cardScrub(target, artEl, { lag = 0.5 } = {}) {
   if (!target) return () => {};
   const { gsap, ScrollTrigger } = await getGSAP();
 
-  const tween = gsap.to(target, {
-    scale: toScale, opacity: toOpacity, y: toY, rotateZ: toRotate, ease: 'none',
+  // ponytail: use the parent proj-section (100vh) as trigger so the
+  // 50%-progress mark maps exactly to section-center = card-center = viewport-center.
+  const triggerEl = target.parentElement || target;
+
+  gsap.set(target, { transformOrigin: 'center center' });
+
+  const tl = gsap.timeline({
     scrollTrigger: {
-      trigger: target,
-      start: 'center center',
-      end: 'top top',
+      trigger: triggerEl,
+      start: 'top bottom',
+      end:   'bottom top',
       scrub: lag,
+      onToggleActive(self) {
+        target.style.willChange = self.isActive ? 'transform, opacity' : 'auto';
+      },
     },
   });
 
-  return () => {
-    tween.scrollTrigger?.kill();
-    tween.kill();
-    gsap.set(target, { clearProps: 'transform,opacity' });
-  };
-}
-
-/**
- * Subtle scroll-linked image parallax — y drifts and scale settles as
- * the card transits the viewport. `ease:'none'` since GSAP scrub
- * already ties progress 1:1 to scroll position; easing here would just
- * fight the scrub and feel laggy.
- *
- * @param {Element} target
- * @param {{ yFrom?: number; yTo?: number; scaleFrom?: number; scaleTo?: number }} [opts]
- * @returns {Promise<() => void>} cleanup
- */
-export async function imageParallax(target, {
-  yFrom     = -24,
-  yTo       = 24,
-  scaleFrom = 1.03,
-  scaleTo   = 1,
-} = {}) {
-  if (!target) return () => {};
-  const { gsap, ScrollTrigger } = await getGSAP();
-
-  const tween = gsap.fromTo(target,
-    { y: yFrom, scale: scaleFrom },
-    {
-      y: yTo, scale: scaleTo, ease: 'none',
-      scrollTrigger: {
-        trigger: target,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: true,
-      },
-    }
+  // Enter: arrives from below, tilted clockwise
+  tl.fromTo(target,
+    { y: '35vh', scale: 0.72, rotateZ: 3,  opacity: 0.85 },
+    { y: 0,      scale: 1,    rotateZ: 0,  opacity: 1,   ease: 'none', duration: 1 },
+  );
+  // Leave: exits upward, tilted counter-clockwise
+  tl.to(target,
+    { y: '-30vh', scale: 0.78, rotateZ: -2, opacity: 0.85, ease: 'none', duration: 1 },
   );
 
+  // Inner image parallax
+  let imageTween = null;
+  if (artEl) {
+    imageTween = gsap.fromTo(artEl,
+      { y: -24, scale: 1.05 },
+      {
+        y: 24, scale: 1, ease: 'none',
+        scrollTrigger: {
+          trigger: triggerEl,
+          start: 'top bottom',
+          end:   'bottom top',
+          scrub: true,
+        },
+      },
+    );
+  }
+
   return () => {
-    tween.scrollTrigger?.kill();
-    tween.kill();
-    gsap.set(target, { clearProps: 'transform' });
+    tl.scrollTrigger?.kill();
+    tl.kill();
+    imageTween?.scrollTrigger?.kill();
+    imageTween?.kill();
+    gsap.set(target, { clearProps: 'all' });
+    if (artEl) gsap.set(artEl, { clearProps: 'transform' });
   };
 }

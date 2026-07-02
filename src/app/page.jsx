@@ -3,6 +3,7 @@ import { PROJECTS } from '../lib/projects';
 import Hero from '../components/identity/Hero';
 import ProjectCard from '../components/showcase/ProjectCard';
 import ProjectProgress from '../components/showcase/ProjectProgress';
+import AllProjectsButton from '../components/showcase/AllProjectsButton';
 import ContactSection from '../components/narrative/ContactSection';
 import StackedReveal from '../components/layout/StackedReveal';
 import HomeAtmosphere from '../components/layout/HomeAtmosphere';
@@ -23,6 +24,7 @@ export default function HomePage() {
       <Hero />
 
       {/* ── WORK → CONTACT (layered reveal) ── */}
+      <AllProjectsButton />
       <StackedReveal>
         <section className="section work" id="work" aria-label="Selected Work">
           <div className="wrap">

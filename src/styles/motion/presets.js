@@ -9,57 +9,94 @@
  */
 
 /**
- * Loader logo stroke-draw → hero entrance. Animation only — the
- * caller (PageWrapper) owns side effects (hiding the loader, body
- * scroll lock, the 'w0rapit:loaded' event) via `onComplete`, so
- * there's a single place that decides what "done" means.
+ * Water-droplet loader sequence → hero entrance.
  *
- * Draws each path of the w0 logo via native SVG
- * stroke-dasharray/dashoffset (getTotalLength — no DrawSVG plugin
- * needed), crossfades stroke → fill, winks a small sparkle on the
- * right, then fades the whole loader out. ~2.1s total.
+ * Sequence (≈2.8s total):
+ *  t=0.00  Droplet fades in 90px above center
+ *  t=0.18  Droplet falls (ease-in, accelerating)
+ *  t=0.90  Impact — drop squashes and disappears
+ *  t=0.92  Three ripple rings expand outward
+ *  t=0.93  Circular clip-path expands to reveal the w0 logo
+ *  t=2.25  Loader fades out (0.55s)
  *
  * @param {HTMLElement} loaderEl
  * @param {{ onComplete?: () => void }} [opts]
  * @returns {Promise<() => void>} cleanup function
  */
-const LOGO_FILL_OPACITY = [1, 1, 0.5]; // third path is the logo's accent arc
-
 export async function runLoader(loaderEl, { onComplete } = {}) {
   if (!loaderEl) return () => {};
   const { default: gsap } = await import('gsap');
 
-  const logo    = loaderEl.querySelector('[data-loader-logo]');
-  const paths   = loaderEl.querySelectorAll('[data-loader-path]');
-  const sparkle = loaderEl.querySelector('[data-loader-sparkle]');
-  const lengths = Array.from(paths).map((p) => p.getTotalLength());
+  const drop  = loaderEl.querySelector('[data-loader-drop]');
+  const ring1 = loaderEl.querySelector('[data-loader-ring="1"]');
+  const ring2 = loaderEl.querySelector('[data-loader-ring="2"]');
+  const ring3 = loaderEl.querySelector('[data-loader-ring="3"]');
+  const logo  = loaderEl.querySelector('[data-loader-logo]');
 
-  gsap.set(logo, { opacity: 0, scale: 0.96 });
-  gsap.set(paths, {
-    fillOpacity: 0,
-    strokeOpacity: 1,
-    strokeDasharray: (i) => lengths[i],
-    strokeDashoffset: (i) => lengths[i],
-  });
-  gsap.set(sparkle, { opacity: 0, scale: 0, rotate: -15 });
+  // ── Initial states ─────────────────────────────────────────────────
+  // Drop: centered (xPercent/yPercent = -50%) but shifted 90px above.
+  // Drop SVG viewBox 0 0 24 32 at CSS width 24px → height 32px.
+  // Base of drop (y=30 in SVG) = 30/32 × 32 = 30px from top = 14px
+  // below element center.  Landing y = -14 puts base exactly at scene
+  // center (the logo position).
+  if (drop) gsap.set(drop, { xPercent: -50, yPercent: -50, y: -90, opacity: 0 });
+  if (ring1) gsap.set(ring1, { attr: { r: 0 }, opacity: 0 });
+  if (ring2) gsap.set(ring2, { attr: { r: 0 }, opacity: 0 });
+  if (ring3) gsap.set(ring3, { attr: { r: 0 }, opacity: 0 });
+  if (logo)  gsap.set(logo,  { clipPath: 'circle(0px at 50% 50%)' });
 
   const tl = gsap.timeline({ onComplete });
-  tl.to(logo, { opacity: 1, scale: 1, duration: 0.35, ease: 'power2.out' })
-    .to(paths, {
-      strokeDashoffset: 0, duration: 0.85, stagger: 0.12, ease: 'power2.inOut',
-    }, 0.08)
-    .to(paths, {
-      fillOpacity: (i) => LOGO_FILL_OPACITY[i], strokeOpacity: 0,
-      duration: 0.3, ease: 'power1.out',
-    }, '-=0.2')
-    // Sparkle wink — quick in, brief hold, quick out, not a slow fade.
-    .to(sparkle, { opacity: 1, scale: 1, rotate: 0, duration: 0.22, ease: 'back.out(2.4)' }, '+=0.02')
-    .to(sparkle, { opacity: 0, scale: 0.4, duration: 0.2, ease: 'power1.in' }, '+=0.08')
-    .to(loaderEl, { opacity: 0, duration: 0.4, ease: 'power2.inOut' }, '+=0.12');
+
+  // ── Phase 1: droplet appears (0.00 – 0.20s) ───────────────────────
+  tl.to(drop, { opacity: 1, duration: 0.22, ease: 'power1.out' }, 0);
+
+  // ── Phase 2: droplet falls (0.18 – 0.90s) ─────────────────────────
+  // ease: 'power2.in' = gentle start, fast finish (gravity)
+  tl.to(drop, { y: -14, duration: 0.73, ease: 'power2.in' }, 0.18);
+
+  // ── Phase 3: impact squash (0.90 – 1.02s) ─────────────────────────
+  // transform-origin:center 93.75% in CSS makes scaleY collapse
+  // toward the base (contact point), not the element center.
+  tl.to(drop, {
+    scaleX: 1.9, scaleY: 0.18, opacity: 0,
+    duration: 0.12, ease: 'power3.in',
+  }, 0.90);
+
+  // ── Phase 4: ripple rings expand (0.92 – 2.25s) ───────────────────
+  // Three rings staggered by 60ms; inner ring fastest, outer slowest.
+  // r values in SVG units (the SVG viewBox is 320px so 1 SVG unit ≈ 1px).
+  tl.fromTo(ring1,
+    { attr: { r: 0 }, opacity: 0.65 },
+    { attr: { r: 54 }, opacity: 0, duration: 1.0, ease: 'power1.out' },
+    0.92,
+  );
+  tl.fromTo(ring2,
+    { attr: { r: 0 }, opacity: 0.45 },
+    { attr: { r: 82 }, opacity: 0, duration: 1.2, ease: 'power1.out' },
+    0.98,
+  );
+  tl.fromTo(ring3,
+    { attr: { r: 0 }, opacity: 0.28 },
+    { attr: { r: 115 }, opacity: 0, duration: 1.4, ease: 'power1.out' },
+    1.05,
+  );
+
+  // ── Phase 5: logo reveal via clip-path (0.93 – 2.05s) ─────────────
+  // clip-path circle radius 180px fully covers the logo at any size
+  // (logo max-width 160px → half-diagonal ≈ 94px; 180px is safe
+  // headroom so the reveal never clips a corner).
+  tl.to(logo, {
+    clipPath: 'circle(180px at 50% 50%)',
+    duration: 1.12, ease: 'power2.out',
+  }, 0.93);
+
+  // ── Phase 6: hold + fade out (2.25 – 2.80s) ───────────────────────
+  tl.to(loaderEl, { opacity: 0, duration: 0.55, ease: 'power2.inOut' }, 2.25);
 
   return () => {
     tl.kill();
-    gsap.set(paths, { clearProps: 'all' });
+    if (drop) gsap.set(drop, { clearProps: 'all' });
+    if (logo) gsap.set(logo, { clearProps: 'clipPath' });
   };
 }
 

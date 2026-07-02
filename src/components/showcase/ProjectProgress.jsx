@@ -3,28 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { getProjectSectionId } from '../../lib/projects';
-import { BREAKPOINT_MD } from '../../lib/breakpoints';
-
-const SETTLE_DELAY = 150;    // ms of scroll inactivity before settling
-const SETTLE_TOLERANCE = 4;  // px — already this close to centered, don't bother
 
 /**
  * Vertical dot progress indicator for the Home page's featured-project
- * sections, plus a soft scroll-settle helper for the same area.
- *
- * Native scroll is the source of truth — nothing here ever intercepts
- * wheel/touch input or calls preventDefault. Two independent pieces:
- *
- *  - Dot tracking: three plain IntersectionObservers (wrapper, contact,
- *    per-section ratio) — identical in spirit to how this worked before
- *    any GSAP scroll controller existed. The active dot just follows
- *    whichever section is most visible.
- *  - Soft settle: a passive `scroll` listener that does nothing while
- *    the user is actively scrolling. Only once scroll has been still
- *    for ~150ms does it check whether the nearest project section is
- *    already close to centered (CSS scroll-snap usually gets it there)
- *    and, only if it's meaningfully off, nudges it once with a native
- *    smooth scroll. Desktop/tablet + motion-allowed only.
+ * sections. Native scroll is the source of truth — nothing here intercepts
+ * wheel/touch input, calls preventDefault, or calls window.scrollTo.
+ * The active dot follows whichever section is most visible, tracked
+ * by IntersectionObserver.
  */
 export default function ProjectProgress({ projects }) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -75,40 +60,10 @@ export default function ProjectProgress({ projects }) {
     }, { threshold: 0.35, rootMargin: '-30% 0px -30% 0px' });
     sections.forEach((el) => activeObserver.observe(el));
 
-    // Soft settle — passive only. Never runs while scrolling is still
-    // happening (the debounce resets on every scroll tick), never
-    // intercepts the wheel, never calls preventDefault.
-    let settleTimer = null;
-    const useSettle = !prefersReduced && window.innerWidth >= BREAKPOINT_MD;
-    const onScroll = () => {
-      if (settleTimer) clearTimeout(settleTimer);
-      settleTimer = setTimeout(() => {
-        if (!wrapperVisibleRef.current || contactVisibleRef.current) return;
-
-        const viewportCenter = window.innerHeight / 2;
-        let best = null;
-        sections.forEach((el) => {
-          const rect = el.getBoundingClientRect();
-          const center = rect.top + rect.height / 2;
-          const dist = Math.abs(center - viewportCenter);
-          if (!best || dist < best.dist) best = { dist, center };
-        });
-        if (!best || best.dist < SETTLE_TOLERANCE) return;
-
-        window.scrollTo({
-          top: window.scrollY + (best.center - viewportCenter),
-          behavior: 'smooth',
-        });
-      }, SETTLE_DELAY);
-    };
-    if (useSettle) window.addEventListener('scroll', onScroll, { passive: true });
-
     return () => {
       wrapperObserver.disconnect();
       contactObserver.disconnect();
       activeObserver.disconnect();
-      if (settleTimer) clearTimeout(settleTimer);
-      if (useSettle) window.removeEventListener('scroll', onScroll);
     };
   }, [projects, prefersReduced]);
 
@@ -133,9 +88,7 @@ export default function ProjectProgress({ projects }) {
           aria-label={`Go to ${title} project`}
           aria-current={i === activeIndex ? 'true' : undefined}
           onClick={() => handleClick(slug)}
-        >
-          <span className="proj-progress__ring" aria-hidden="true" />
-        </button>
+        />
       ))}
     </nav>
   );

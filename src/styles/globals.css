@@ -107,26 +107,68 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   border-radius:var(--r-full);
 }
 
-/* 4. Loader */
+/* 4. Loader — water-droplet sequence */
 .loader {
   position:fixed; inset:0; z-index:var(--z-loader);
   background:var(--bg);
   display:flex; align-items:center; justify-content:center;
   pointer-events:all;
-  transition:opacity var(--dur-550) var(--ease-std);
 }
+
+/* Scene — all loader layers are positioned relative to this anchor */
+.loader__scene { position:relative; }
+
+/* ── Droplet ──────────────────────────────────────────────────────── */
+/* GSAP drives all transforms (xPercent, yPercent, y, scale).
+   transform-origin 93.75% = 30/32 of the SVG height = where the
+   rounded base sits, so the squash-on-impact collapses toward the
+   contact point, not the element center. */
+.loader__drop {
+  position:absolute; left:50%; top:50%;
+  transform-origin:center 93.75%;
+  width:24px; pointer-events:none;
+}
+.loader__drop-svg { display:block; width:100%; height:auto; }
+.loader__drop-body {
+  fill:rgba(100,150,220,0.07);
+  stroke:rgba(140,190,240,0.35);
+  stroke-width:0.55;
+}
+[data-theme="dark"] .loader__drop-body {
+  fill:rgba(120,180,255,0.12);
+  stroke:rgba(160,210,255,0.45);
+}
+.loader__drop-glint { fill:rgba(255,255,255,0.52); }
+.loader__drop-spec  { fill:rgba(255,255,255,0.78); }
+
+/* ── Ripple rings ─────────────────────────────────────────────────── */
+/* SVG viewBox="-160 -160 320 320" so 0,0 = element center.
+   overflow:visible lets rings expand past the 320px bounds.
+   GSAP animates r (attr) and opacity (CSS) on each circle. */
+.loader__ripple {
+  position:absolute; left:50%; top:50%;
+  translate:-50% -50%;
+  width:320px; height:320px;
+  pointer-events:none; overflow:visible;
+}
+.loader__ring {
+  fill:none;
+  stroke:var(--c-accent);
+  stroke-width:1;
+  opacity:0;
+}
+
+/* ── Logo reveal ──────────────────────────────────────────────────── */
+/* clip-path starts at circle(0px) so the logo is hidden until GSAP
+   expands it in sync with the ripple spread. */
 .loader__logo {
+  position:relative; z-index:1;
   width:clamp(88px,14vw,160px);
   color:var(--tx-1);
+  clip-path:circle(0px at 50% 50%);
 }
 .loader__logo svg { display:block; width:100%; height:auto; }
-.loader__logo [data-loader-path] {
-  fill:currentColor;
-  stroke:currentColor;
-  stroke-width:1;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-}
+.loader__logo path { fill:currentColor; }
 
 /* 5. Navigation — migrated to Tailwind utility classes directly in
    Nav.jsx (container, pill, logo, links, theme toggle, hamburger,
@@ -145,6 +187,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   transition:all var(--dur-base) var(--ease-std); will-change:transform;
 }
 .btn:active { transform:scale(.97) translateY(1px); transition-duration:70ms; }
+@media(min-width:768px) { .btn { height:2.5rem; } }
 /* Primary button — deep charcoal fill (never a colored/blue fill), a
    faint indigo border for definition, and a subtle inset highlight for
    the "glass sheen" without making the fill itself translucent. */
@@ -295,9 +338,16 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 @media(max-width:1024px){
   .hero__headline-line { white-space:normal; }
 }
+/* Supporting paragraph — same typography as status, sits between h1 and status */
+.hero__support {
+  margin-top:1.5rem;
+  font-size:var(--fs-xl); /* 18px */
+  font-weight:500; letter-spacing:.01em; line-height:1.5;
+  color:var(--tx-3);
+}
 /* Status line — plain text, no chrome (not a tag/chip/pill) */
 .hero__status {
-  margin-top:1.5rem;
+  margin-top:1rem; /* 16px gap after support paragraph */
   font-size:var(--fs-xl); /* 18px */
   font-weight:500; letter-spacing:.01em; line-height:1.5;
   color:var(--tx-3);
@@ -396,22 +446,13 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   padding-bottom:clamp(1.5rem,3vw,3rem);
   position:relative; z-index:var(--z-2);
 }
-/* Soft gradient tint — fades in from hero, out toward contact.
-   z-index:-1 inside work's stacking context keeps cards above it. */
+/* Soft background fill behind project cards — fades in from Hero above
+   and out toward Contact below so there's no hard edge or visible rectangle. */
 .work::before {
   content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
-  background:linear-gradient(to bottom,
-    transparent                  0%,
-    rgba(235,239,245,.75)      20%,
-    rgba(235,239,245,.75)      80%,
-    transparent                100%);
-}
-[data-theme="dark"] .work::before {
-  background:linear-gradient(to bottom,
-    transparent          0%,
-    rgba(6,8,14,.48)   20%,
-    rgba(6,8,14,.48)   80%,
-    transparent        100%);
+  background:var(--bg);
+  -webkit-mask-image:linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
+  mask-image:linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
 }
 
 /* Wraps the card list so it shares the same grid placement below. */
@@ -452,18 +493,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
     /* Breathing room between full-bleed cards — clamp scales it down
        proportionally on tablet instead of a separate breakpoint. */
     padding-block:clamp(1.5rem,3vw,3rem);
-    scroll-snap-align:center;
-    scroll-snap-stop:normal;
   }
-}
-@media(min-width:768px) and (prefers-reduced-motion:no-preference){
-  /* proximity, not mandatory — mandatory forces scroll to always rest
-     at a snap point, but Hero/Contact have none of their own, which
-     previously caused load-time jumps and a "trapped" feeling at the
-     top/bottom edges of the project list. proximity only engages when
-     scroll is already settling close to a snap point, so it never
-     yanks scroll from Hero or Contact. */
-  html:has(.proj-section) { scroll-snap-type:y proximity; }
 }
 
 /* ── Card — full-bleed image, text lives inside it as an overlay ── */
@@ -481,7 +511,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   border:var(--bw-1) solid var(--glass-border);
   box-shadow:var(--glass-highlight);
   /* Hover-lift animates the standalone `translate` property, not
-     `transform` — cardLeave (scroll.js) drives `transform` directly
+     `transform` — cardScrub (scroll.js) drives `transform` directly
      (scale/y/rotateZ) via GSAP's scrubbed ScrollTrigger on this same
      element; if hover also transitioned `transform`, every GSAP scrub
      tick would restart this 350ms CSS transition and the scroll motion
@@ -649,6 +679,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
   transform:translateX(4px);
 }
 
+
 /* ── Project progress dots — fixed to the viewport's right edge,
    vertically centered. Visible only while the project list wrapper is
    intersecting (toggled via JS in ProjectProgress.jsx); hidden before
@@ -681,42 +712,60 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .proj-progress__dot {
   position:relative;
   display:flex; align-items:center; justify-content:center;
-  width:32px; height:32px;       /* comfortable hit target */
-  background:none; border:none; padding:0; margin:0;
+  width:32px; height:32px;
+  background:none; border:1px solid transparent; padding:0; margin:0;
   cursor:pointer;
+  border-radius:var(--r-circle);
+  transition:background-color var(--dur-260) var(--ease-std), border-color var(--dur-260) var(--ease-std);
+}
+/* Tonal pill on active dot — matches the glass surface language of the nav */
+.proj-progress__dot.is-active {
+  background:var(--s2);
+  border-color:var(--bd-2);
 }
 .proj-progress__dot::before {
   content:'';
   display:block;
-  width:8px; height:8px;
+  width:6px; height:6px;
   border-radius:var(--r-circle);
   background:var(--tx-3);
   opacity:.4;
-  transition:opacity var(--dur-260) var(--ease-std), background-color var(--dur-260) var(--ease-std),
-    width var(--dur-280) var(--ease-expo), height var(--dur-280) var(--ease-expo);
+  transition:opacity var(--dur-260) var(--ease-std), background-color var(--dur-260) var(--ease-std);
 }
 .proj-progress__dot:hover::before { opacity:.7; }
 .proj-progress__dot.is-active::before {
-  width:12px; height:12px;
   background:var(--tx-accent);
   opacity:1;
 }
-.proj-progress__ring {
-  position:absolute;
-  inset:0; margin:auto;
-  width:0; height:0;
-  border-radius:var(--r-circle);
-  border:var(--bw-1) solid transparent;
-  transition:width var(--dur-280) var(--ease-expo), height var(--dur-280) var(--ease-expo), border-color var(--dur-280) var(--ease-std);
-}
-.proj-progress__dot.is-active .proj-progress__ring {
-  width:30px; height:30px;
-  border-color:var(--tx-accent);
-}
 @media(prefers-reduced-motion:reduce){
-  .proj-progress__dot::before,
-  .proj-progress__ring { transition:none; }
+  .proj-progress__dot,
+  .proj-progress__dot::before { transition:none; }
 }
+
+/* ── All Projects button — fixed bottom-right, visible only while
+   inside #work and before #contact (mirrors proj-progress logic). ── */
+.all-projects-btn {
+  position:fixed;
+  bottom:48px; right:48px;
+  z-index:var(--z-sticky);
+  pointer-events:none;
+  opacity:0;
+  transform:translateY(8px);
+  transition:opacity var(--dur-280) var(--ease-std), transform var(--dur-280) var(--ease-std);
+}
+.all-projects-btn--visible {
+  pointer-events:auto;
+  opacity:1;
+  transform:none;
+}
+/* Match navbar "Get in Touch" size: h-10 (40px) + px-[18px] (1.125rem) */
+.all-projects-btn .btn {
+  height:2.5rem;
+  padding-inline:1.125rem;
+}
+@media(max-width:767px) { .all-projects-btn { display:none; } }
+@media(max-width:1023px) { .all-projects-btn { bottom:32px; right:32px; } }
+@media(prefers-reduced-motion:reduce) { .all-projects-btn { transition:none; } }
 
 /* 10. Testimonials */
 .testi { background:var(--bg); }
@@ -808,14 +857,12 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 ═══════════════════════════════════════════════════ */
 .contact-section {
   position:relative; z-index:var(--z-1);
-  /* Home variant (default) — full-viewport, hero-style feel: the section
-     itself is the 100vh block and its content centers within it. svh
-     (not vh) matches Hero's own convention so mobile browser chrome
-     showing/hiding never crops it. */
-  min-height:100svh;
+  /* Home variant: section fills the viewport minus footer height so the
+     footer sits flush at the bottom of the 100svh view without scrolling.
+     Content is flex-centered with symmetric padding for true vertical center. */
+  min-height:calc(100svh - 5rem);
   display:flex; align-items:center;
-  padding-top:clamp(5rem,12vw,10rem);
-  padding-bottom:clamp(3rem,6vw,5rem);
+  padding-block:clamp(3rem,6vw,5rem);
   /* overflow:visible — water canvas extends -6rem below into footer space */
 }
 /* Water canvas — fills section + extends into footer (bottom:-6rem).
@@ -858,7 +905,7 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .contact-section .contact-grid { position:relative; z-index:1; grid-column:1 / -1; }
 
 @media(max-width:767px){
-  .contact-section { padding-top:clamp(3.5rem,8vw,6rem); }
+  .contact-section { min-height:calc(100svh - 5rem); padding-block:clamp(2.5rem,6vw,4rem); }
 }
 
 /* ── Compact variant — every non-home page. Hugs its content instead of
@@ -876,6 +923,14 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
 .contact-section--compact .contact-card {
   padding-top:clamp(48px,6vw,80px);
   padding-bottom:clamp(48px,6vw,80px);
+}
+/* Compact water — immediately visible (no GSAP), flush to section bounds,
+   soft fade at top and bottom via mask so the canvas doesn't hard-clip. */
+.contact-section--compact .contact-water-wrap {
+  opacity:1;
+  inset:0;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 18%,black 82%,transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0%,black 18%,black 82%,transparent 100%);
 }
 
 /* ── Single centered column — all content stacked and centered ── */
@@ -898,87 +953,161 @@ button { cursor:pointer; font-family:var(--f-body); background:none; border:none
    spacing from the headline above. ───────────────────────────────── */
 .contact-cta { margin-top:.5rem; }
 
-/* ── Contact modal — full-screen scrim + centered form panel, slides
-   down from above with a fade. cubic-bezier(0.22,1,0.36,1) matches the
-   ease already used for this section's own scroll-reveal (see the
-   ContactSection component) and for project-card motion — the site's
-   one "premium settle" curve, reused here instead of inventing a
-   second one. ───────────────────────────────────────────────────── */
-.contact-modal {
+/* ── Contact modal — full-width bottom sheet.
+   GSAP drives all enter/exit animation; CSS only provides the initial
+   hidden state (opacity:0, transform) that GSAP picks up from. ─── */
+
+/* Backdrop — full-screen scrim, panel anchored to bottom edge */
+.cmodal-bg {
   position:fixed; inset:0; z-index:var(--z-modal);
-  display:flex; align-items:flex-start; justify-content:center;
-  overflow-y:auto;
-  padding:clamp(1.5rem,6vw,4rem) 1.25rem;
-  background:var(--overlay);
-  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity var(--dur-page) cubic-bezier(0.22,1,0.36,1);
+  display:flex; align-items:flex-end; justify-content:center;
+  padding:0;
+  background:rgba(6,8,14,.75);
+  backdrop-filter:blur(16px) saturate(1.4);
+  -webkit-backdrop-filter:blur(16px) saturate(1.4);
+  overflow:hidden;
+  opacity:0; pointer-events:none; /* GSAP sets pointer-events:auto on open */
 }
-.contact-modal.is-open { opacity:1; pointer-events:auto; }
 
-.contact-modal__panel {
-  position:relative; width:100%; max-width:520px;
-  margin-top:min(6vh,3rem);
-  background:var(--s1);
+/* Panel — 100vw bottom sheet, slides up from below */
+.cmodal {
+  position:relative; width:100%; max-width:100%;
+  min-height:72svh; max-height:88svh;
+  display:grid; grid-template-columns:1fr 1fr;
   border:var(--bw-1) solid var(--bd-2);
-  border-radius:var(--r-3xl);
-  box-shadow:var(--sh-lift);
-  padding:clamp(2rem,5vw,2.75rem);
-  transform:translateY(-40px);
-  transition:transform var(--dur-page) cubic-bezier(0.22,1,0.36,1);
+  border-bottom:none;
+  border-radius:24px 24px 0 0;
+  box-shadow:0 -8px 48px rgba(0,0,0,.3), 0 0 0 1px var(--bd-1);
+  overflow:hidden;
+  opacity:0; transform:translateY(100%);
 }
-.contact-modal.is-open .contact-modal__panel { transform:translateY(0); }
 
-.contact-modal__close {
-  position:absolute; top:1.25rem; right:1.25rem;
+/* Close button */
+.cmodal__close {
+  position:absolute; top:1.125rem; right:1.125rem; z-index:10;
   display:flex; align-items:center; justify-content:center;
   width:34px; height:34px;
   border-radius:var(--r-full);
   border:var(--bw-1) solid var(--bd-2);
-  color:var(--tx-2);
+  color:var(--tx-3);
+  background:var(--s1);
   transition:color var(--dur-base) var(--ease-std), border-color var(--dur-base) var(--ease-std), background-color var(--dur-base) var(--ease-std);
 }
-.contact-modal__close:hover { color:var(--tx-1); border-color:var(--bd-3); background:var(--s2); }
+.cmodal__close:hover { color:var(--tx-1); border-color:var(--bd-3); background:var(--s2); }
 
-.contact-modal__title {
+/* ── Left column — editorial panel ── */
+.cmodal__left {
+  padding:clamp(2.5rem,5vw,3.5rem);
+  background:var(--s2);
+  border-right:var(--bw-1) solid var(--bd-2);
+  display:flex; flex-direction:column;
+  overflow-y:auto;
+}
+.cmodal__eyebrow {
+  font-size:var(--fs-sm); font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase;
+  color:var(--tx-3);
+  margin-bottom:1.5rem;
+}
+.cmodal__heading {
   font-family:var(--f-display);
-  font-size:var(--fs-2xl); font-weight:600;
+  font-size:clamp(1.75rem,2.8vw,2.75rem);
+  font-weight:700; line-height:1.1; letter-spacing:-.022em;
   color:var(--tx-1);
+  margin-bottom:1.125rem;
 }
-.contact-modal__sub {
-  margin-top:.375rem;
-  font-size:var(--fs-md); color:var(--tx-2);
+.cmodal__desc {
+  font-size:var(--fs-md); line-height:1.72; color:var(--tx-2);
+  margin-bottom:2rem;
+}
+.cmodal__socials {
+  display:flex; gap:.75rem;
+  margin-bottom:auto; padding-bottom:2rem;
+}
+.cmodal__social {
+  display:flex; align-items:center; justify-content:center;
+  width:38px; height:38px;
+  border-radius:var(--r-full);
+  border:var(--bw-1) solid var(--bd-2);
+  color:var(--tx-2); text-decoration:none;
+  transition:color var(--dur-base) var(--ease-std),
+    border-color var(--dur-base) var(--ease-std),
+    transform var(--dur-base) var(--ease-std);
+}
+.cmodal__social:hover { color:var(--tx-1); border-color:var(--bd-3); transform:translateY(-2px); }
+.cmodal__meta {
+  display:flex; flex-direction:column; gap:.3rem;
+  padding-top:1.5rem;
+  border-top:var(--bw-1) solid var(--bd-1);
+  font-size:var(--fs-sm); color:var(--tx-3);
 }
 
-.contact-modal__form {
-  display:flex; flex-direction:column; gap:1.125rem;
-  margin-top:1.75rem;
-}
-.contact-modal__field {
-  display:flex; flex-direction:column; gap:.4rem;
-  font-size:var(--fs-sm); font-weight:500; color:var(--tx-2);
-}
-.contact-modal__field input,
-.contact-modal__field textarea {
-  font-family:var(--f-body); font-size:var(--fs-md); color:var(--tx-1);
+/* ── Right column — form ── */
+.cmodal__right {
+  padding:clamp(2.5rem,5vw,3.5rem);
   background:var(--bg);
+  overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+.cmodal__form-title {
+  font-family:var(--f-display);
+  font-size:var(--fs-2xl); font-weight:600; color:var(--tx-1);
+  margin-bottom:.375rem;
+}
+.cmodal__form-sub {
+  font-size:var(--fs-md); color:var(--tx-2);
+  margin-bottom:1.75rem;
+}
+.cmodal__form { display:flex; flex-direction:column; gap:1.125rem; }
+.cmodal__row  { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.cmodal__field { display:flex; flex-direction:column; gap:.375rem; }
+.cmodal__label { font-size:var(--fs-sm); font-weight:500; color:var(--tx-2); }
+.cmodal__input,
+.cmodal__select,
+.cmodal__textarea {
+  font-family:var(--f-body); font-size:var(--fs-md); color:var(--tx-1);
+  background:var(--s1);
   border:var(--bw-1) solid var(--bd-2);
   border-radius:var(--r-lg);
-  padding:.7rem .875rem;
-  resize:vertical;
+  padding:.75rem 1rem;
+  width:100%;
   transition:border-color var(--dur-base) var(--ease-std);
 }
-.contact-modal__field input:focus-visible,
-.contact-modal__field textarea:focus-visible { border-color:var(--c-accent); }
-
-.contact-modal__note {
-  font-size:var(--fs-sm); color:var(--tx-3); text-align:center;
+.cmodal__input::placeholder,
+.cmodal__textarea::placeholder { color:var(--tx-4); }
+.cmodal__input:focus-visible,
+.cmodal__select:focus-visible,
+.cmodal__textarea:focus-visible { outline:none; border-color:var(--c-accent); }
+.cmodal__select { appearance:none; -webkit-appearance:none; cursor:pointer; }
+.cmodal__textarea { resize:vertical; min-height:110px; }
+/* Custom select wrapper with chevron */
+.cmodal__sel-wrap {
+  position:relative;
 }
-
-@media(prefers-reduced-motion:reduce){
-  .contact-modal, .contact-modal__panel { transition:none; }
+.cmodal__sel-wrap .cmodal__select { padding-right:2.5rem; }
+.cmodal__chevron {
+  position:absolute; right:.875rem; top:50%; transform:translateY(-50%);
+  pointer-events:none; color:var(--tx-3);
 }
+/* Toast notifications */
+.cmodal__toast {
+  display:flex; align-items:center; gap:.5rem;
+  padding:.75rem 1rem;
+  border-radius:var(--r-lg);
+  font-size:var(--fs-sm); font-weight:500;
+  margin-bottom:1.25rem;
+}
+.cmodal__toast--ok  { background:rgba(122,140,110,.12); color:var(--c-success); }
+.cmodal__toast--err { background:rgba(155,74,58,.12);   color:var(--c-error); }
+
+/* Mobile — stack columns vertically, panel scrolls as a whole */
+@media(max-width:767px){
+  .cmodal { grid-template-columns:1fr; border-radius:20px 20px 0 0; overflow-y:auto; }
+  .cmodal__left { border-right:none; border-bottom:var(--bw-1) solid var(--bd-2); }
+  .cmodal__row  { grid-template-columns:1fr; }
+}
+/* Light mode: tighter overlay (bg is bright, less blur needed) */
+[data-theme="light"] .cmodal-bg { background:rgba(17,21,31,.55); }
 
 /* ── Headline — 64px desktop via --fs-contact-heading, fluid down to
    a mobile floor so tablet/mobile scale smoothly instead of jumping

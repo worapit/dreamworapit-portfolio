@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { ArrowUpRightIcon } from '@heroicons/react/24/outline';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { getProjectSectionId } from '../../lib/projects';
 import ProjectPlaceholder from './ProjectPlaceholder';
@@ -9,29 +10,32 @@ import ProjectPlaceholder from './ProjectPlaceholder';
 export default function ProjectCard({
   title, editorialMeta, headline, slug, featured = false,
 }) {
-  const cardRef = useRef(null);
-  const artRef  = useRef(null);
+  const cardRef   = useRef(null);
+  const artRef    = useRef(null);
   const prefersReduced = useReducedMotion();
 
- 
   useEffect(() => {
     if (prefersReduced || !cardRef.current) return;
     let cancelled = false;
     const cleanups = [];
-    import('../../styles/motion/scroll').then(({ scaleReveal, cardLeave, imageParallax }) => {
+
+    import('../../styles/motion/scroll').then(({ cardScrub, fadeUp }) => {
       if (cancelled) return;
-      scaleReveal(cardRef.current).then((fn) => { cancelled ? fn() : cleanups.push(fn); });
-      cardLeave(cardRef.current).then((fn) => { cancelled ? fn() : cleanups.push(fn); });
-      if (artRef.current) {
-        imageParallax(artRef.current).then((fn) => { cancelled ? fn() : cleanups.push(fn); });
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        fadeUp(cardRef.current, { y: 20, duration: 0.5 }).then(
+          (fn) => { cancelled ? fn() : cleanups.push(fn); },
+        );
+      } else {
+        cardScrub(cardRef.current, artRef.current).then(
+          (fn) => { cancelled ? fn() : cleanups.push(fn); },
+        );
       }
     });
+
     return () => { cancelled = true; cleanups.forEach((fn) => fn()); };
   }, [prefersReduced]);
 
-  // Proximity glow — CSS custom properties tracking pointer position
-  // within the card, consumed by the radial-gradient ring in
-  // .proj-card__glow (opacity itself is a plain CSS :hover transition).
+  // Proximity glow
   useEffect(() => {
     if (prefersReduced || typeof window === 'undefined') return;
     if (!window.matchMedia('(pointer: fine)').matches) return;
@@ -45,6 +49,7 @@ export default function ProjectCard({
     card.addEventListener('mousemove', onMove);
     return () => card.removeEventListener('mousemove', onMove);
   }, [prefersReduced]);
+
 
   const cardClass = ['proj-card', featured && 'proj-card--featured']
     .filter(Boolean).join(' ');
@@ -81,13 +86,7 @@ export default function ProjectCard({
               {headline && <p className="proj-card__desc">{headline}.</p>}
             </div>
             <span className="proj-card__arrow" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M7 17L17 7M9 7h8v8"
-                  stroke="currentColor" strokeWidth="1.6"
-                  strokeLinecap="round" strokeLinejoin="round"
-                />
-              </svg>
+              <ArrowUpRightIcon width={18} height={18} />
             </span>
           </div>
         </Link>

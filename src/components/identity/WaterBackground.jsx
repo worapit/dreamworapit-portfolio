@@ -7,7 +7,6 @@ import { useReducedMotion } from '../../hooks/useReducedMotion';
 const N = 12; // max simultaneous ripples in the shader uniform array
 
 // ─── Vertex shader ────────────────────────────────────────────────────────────
-// Full-screen triangle pair; v_uv has y=0 at top so it matches CSS coords.
 const VERT = `
 attribute vec2 a_pos;
 varying   vec2 v_uv;
@@ -18,16 +17,24 @@ void main() {
 `;
 
 // ─── Fragment shader ──────────────────────────────────────────────────────────
+// #ifdef GL_FRAGMENT_PRECISION_HIGH — defined as 1 on hardware that supports
+// 32-bit highp floats in the fragment stage. Android mediump is genuinely
+// 16-bit on Mali/Adreno: at |x| > ~100 the sin/cos arguments used in the
+// caustic loop lose 0.2–0.4 rad of precision, turning the fine caustic net
+// into visible banding. highp fixes this with no extra shader cost.
 const FRAG = `
-precision mediump float;
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+  precision highp float;
+#else
+  precision mediump float;
+#endif
 varying vec2 v_uv;
 
-uniform float u_time;   // elapsed seconds
-uniform vec2  u_res;    // canvas pixel dimensions
-uniform float u_dark;   // 0 = light mode, 1 = dark mode
-uniform vec4  u_rip[${N}]; // (uvX, uvY, birthTime, strength) per ripple
+uniform float u_time;
+uniform vec2  u_res;
+uniform float u_dark;
+uniform vec4  u_rip[${N}];
 
-// ─── Gradient noise ──────────────────────────────────────────────────────────
 vec2 h2(vec2 p) {
   p = vec2(dot(p, vec2(127.1,311.7)), dot(p, vec2(269.5,183.3)));
   return fract(sin(p) * 43758.5453);
@@ -43,21 +50,13 @@ float gnoise(vec2 p) {
 }
 float fbm(vec2 p) {
   float v = 0.0, a = 0.5;
-  mat2  m = mat2(1.6, 1.2, -1.2, 1.6); // 2x scale + rotation each octave
+  mat2  m = mat2(1.6, 1.2, -1.2, 1.6);
   v += a * gnoise(p); p = m * p; a *= 0.5;
   v += a * gnoise(p); p = m * p; a *= 0.5;
   v += a * gnoise(p);
   return v;
 }
 
-// ─── Caustic pattern ──────────────────────────────────────────────────────────
-// Ray-convergence caustics: iteratively distorts a point on the complex
-// plane and accumulates 1/distance to the distorted grid. This is the
-// standard technique for the fine, woven net of bright threads real
-// sunlit water casts — plain FBM noise reads as soft "clouds" instead,
-// which is too blobby to pass as caustics. Occasional exact-zero
-// denominators produce a stray Inf/0 pixel for a single frame; visually
-// unnoticeable and self-corrects next frame as the pattern moves on.
 float caustic(vec2 uv, float t) {
   float ar  = u_res.x / u_res.y;
   vec2  uv2 = uv * vec2(ar, 1.0);
@@ -75,9 +74,6 @@ float caustic(vec2 uv, float t) {
   return clamp(pow(abs(c), 8.0), 0.0, 1.0);
 }
 
-// ─── Ambient traveling waves ──────────────────────────────────────────────────
-// Five sine waves at different angles, speeds, and frequencies —
-// produces natural-looking open-water surface motion.
 float waveH(vec2 uv, float t) {
   float ar = u_res.x / u_res.y;
   vec2 p   = uv * vec2(ar, 1.0);
@@ -90,52 +86,39 @@ float waveH(vec2 uv, float t) {
   return h;
 }
 
-// ─── Mouse/touch ripples ──────────────────────────────────────────────────────
-// Each ripple expands outward at 0.36 UV/s with a sin carrier (30 rad/UV),
-// decays in space (exp(-d*2.4)) and time (exp(-age*1.1)).
-// Branchless: inactive ripples gate to 0.0 via the 'gate' multiplier.
 float rippleH(vec2 uv, float t) {
   float ar = u_res.x / u_res.y;
-  vec2 sc  = vec2(ar, 1.0); // aspect-correct distance
+  vec2 sc  = vec2(ar, 1.0);
   float h  = 0.0;
   for (int i = 0; i < ${N}; i++) {
     vec4  r   = u_rip[i];
     float age = t - r.z;
-    // gate: r.w > 0 AND 0 <= age < 4.5
     float gate = step(0.001, r.w) * step(0.0, age) * (1.0 - step(4.5, age));
     float d   = length((uv - r.xy) * sc);
-    float wf  = d - age * 0.36;              // signed distance from wavefront
+    float wf  = d - age * 0.36;
     float env = exp(-d * 2.4) * exp(-age * 1.1) * r.w;
-    float osc = sin(wf * 30.0) * smoothstep(0.025, 0.0, wf); // zero ahead of front
+    float osc = sin(wf * 30.0) * smoothstep(0.025, 0.0, wf);
     h += osc * env * gate;
   }
   return h;
 }
 
 void main() {
-  float t  = u_time * 0.50; // slow-motion ambient waves
+  float t  = u_time * 0.50;
   vec2  uv = v_uv;
 
-  // Height field at uv and two neighbours for finite-difference normals.
-  // waveH uses the slowed 't'; rippleH uses raw elapsed (u_time).
   float e  = 0.003;
   float h  = waveH(uv,             t) + rippleH(uv,             u_time);
   float hx = waveH(uv+vec2(e,0.0), t) + rippleH(uv+vec2(e,0.0), u_time);
   float hy = waveH(uv+vec2(0.0,e), t) + rippleH(uv+vec2(0.0,e), u_time);
 
-  // Surface normal — dz controls how much tilt modulates the colour
   vec3 norm = normalize(vec3((h - hx) / e * 0.034, (h - hy) / e * 0.034, 1.0));
 
-  // Caustics evaluated at the refraction-shifted UV
   float c = caustic(uv + norm.xy * 0.016, t * 1.5);
 
-  // Reflection intensity from surface tilt
   float tilt = 1.0 - abs(norm.z);
   float refl = clamp(tilt * 8.0, 0.0, 1.0);
 
-  // ─── Theme-aware palette ──────────────────────────────────────────────────
-  // Light: white base + pale sky reflection
-  // Dark:  deep navy base + faint blue reflection
   vec3 baseL = vec3(0.986, 0.991, 0.999);
   vec3 skyL  = vec3(0.750, 0.840, 0.940);
   vec3 baseD = vec3(0.038, 0.052, 0.088);
@@ -144,14 +127,9 @@ void main() {
   vec3 base       = mix(baseL, baseD, u_dark);
   vec3 sky        = mix(skyL,  skyD,  u_dark);
   float skyMix    = mix(0.028, 0.090, u_dark);
-  float causticFloor = mix(0.940, 0.560, u_dark); // gap brightness relative to base
+  float causticFloor = mix(0.940, 0.560, u_dark);
   float sparkleAmt   = mix(0.050, 0.130, u_dark);
 
-  // base is already near-white in light mode, so additive brightening
-  // has no headroom and instantly clips to flat white — the woven net
-  // has to read as *dimming the gaps* instead, with the bright threads
-  // (c→1) returning to full base brightness, plus a small additive
-  // sparkle right at the brightest thread cores.
   vec3 col = mix(base, sky, refl * skyMix);
   col *= mix(causticFloor, 1.0, c);
   col += pow(c, 6.0) * sparkleAmt;
@@ -196,21 +174,20 @@ export default function WaterBackground({ strength = 0.72 }) {
   const canvasRef      = useRef(null);
   const prefersReduced = useReducedMotion();
   const strengthRef    = useRef(strength);
-  // Keep strengthRef current without re-initialising the WebGL context.
   useEffect(() => { strengthRef.current = strength; }, [strength]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // ── Reduced motion: single static fill, no animation ─────────────────────
+    // ── Reduced motion: single static fill ───────────────────────────────────
     if (prefersReduced) {
       const isDark = document.documentElement.dataset.theme === 'dark';
       const ctx2   = canvas.getContext('2d');
       if (ctx2) {
         const rect    = canvas.getBoundingClientRect();
-        canvas.width  = Math.round(rect.width);
-        canvas.height = Math.round(rect.height);
+        canvas.width  = Math.round(rect.width  || canvas.offsetWidth  || 360);
+        canvas.height = Math.round(rect.height || canvas.offsetHeight || 600);
         ctx2.fillStyle = isDark ? 'rgb(10,13,22)' : 'rgb(252,253,255)';
         ctx2.fillRect(0, 0, canvas.width, canvas.height);
       }
@@ -218,9 +195,14 @@ export default function WaterBackground({ strength = 0.72 }) {
     }
 
     // ── WebGL context ─────────────────────────────────────────────────────────
-    const ctxOpts = { alpha: false, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' };
-    const gl = canvas.getContext('webgl', ctxOpts) || canvas.getContext('experimental-webgl', ctxOpts);
-    if (!gl) return; // transparent canvas → HomeAtmosphere shows through
+    // alpha:true — canvas stays transparent on shader-compile failure so
+    // HomeAtmosphere shows through cleanly instead of going black.
+    // powerPreference omitted ('default') — 'low-power' on some Android
+    // drivers selects reduced-precision rendering paths.
+    const ctxOpts = { alpha: true, antialias: false, depth: false, stencil: false };
+    const gl = canvas.getContext('webgl', ctxOpts)
+            || canvas.getContext('experimental-webgl', ctxOpts);
+    if (!gl) return;
 
     const vert = makeShader(gl, gl.VERTEX_SHADER,   VERT);
     const frag = makeShader(gl, gl.FRAGMENT_SHADER, FRAG);
@@ -230,7 +212,6 @@ export default function WaterBackground({ strength = 0.72 }) {
     if (!prog) return;
     gl.useProgram(prog);
 
-    // Full-screen quad (two triangles)
     const quad = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -241,43 +222,50 @@ export default function WaterBackground({ strength = 0.72 }) {
     gl.enableVertexAttribArray(aPos);
     gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-    // Uniform locations
     const uTime = gl.getUniformLocation(prog, 'u_time');
     const uRes  = gl.getUniformLocation(prog, 'u_res');
     const uDark = gl.getUniformLocation(prog, 'u_dark');
     const uRip  = gl.getUniformLocation(prog, 'u_rip[0]');
 
     // ── Ripple ring buffer ────────────────────────────────────────────────────
-    // Float32Array laid out as [x0,y0,t0,str0, x1,y1,t1,str1, ...]
-    // Inactive slots have str=0 (gate = 0 in shader).
     const ripData = new Float32Array(N * 4);
     let   ripIdx  = 0;
     let   elapsed = 0;
 
-    function addRipple(uvX, uvY, strength) {
+    function addRipple(uvX, uvY, str) {
       const s      = (ripIdx % N) * 4;
       ripData[s]   = uvX;
       ripData[s+1] = uvY;
       ripData[s+2] = elapsed;
-      ripData[s+3] = strength;
+      ripData[s+3] = str;
       ripIdx++;
     }
 
     // ── Resize ────────────────────────────────────────────────────────────────
-    // Canvas backing store is sized in real device pixels (CSS size × DPR)
-    // so the shader renders crisp instead of being upscaled blurry by the
-    // browser. DPR is capped — and capped harder on mobile — since fill-
-    // rate cost grows with the square of DPR and phone GPUs are the ones
-    // that pay for it; the mobile/desktop split mirrors the `md` (768px)
-    // breakpoint the rest of the site already uses (see Nav.jsx). Recomputed
-    // every call so rotating a tablet across that breakpoint stays correct.
+    // DPR strategy:
+    //   desktop  → cap 2.5 (retina, never needed higher for this shader)
+    //   mobile   → cap 2   (matches DPR=2 Android cleanly, no upscale blur)
+    //   low-end  → cap 1.5 (≤4 CPU cores or ≤2 GB RAM, detected via Navigator)
+    // Rendering at DPR < device ratio previously caused the browser to upscale
+    // the small backing store over the CSS 100% size — the main source of
+    // blurriness on Android mid-range and flagship devices.
     const mobileMq = window.matchMedia('(max-width: 767px)');
     function resize() {
-      const rect    = canvas.getBoundingClientRect();
-      const maxDpr  = mobileMq.matches ? 1.5 : 2;
-      const dpr     = Math.min(window.devicePixelRatio || 1, maxDpr);
-      canvas.width  = Math.round(rect.width  * dpr);
-      canvas.height = Math.round(rect.height * dpr);
+      const rect = canvas.getBoundingClientRect();
+      // Guard: ResizeObserver can fire before layout is complete on Android
+      // (returns 0×0). Fall back to offsetWidth/Height which settle sooner.
+      const w = rect.width  || canvas.offsetWidth  || 0;
+      const h = rect.height || canvas.offsetHeight || 0;
+      if (!w || !h) return;
+
+      const isLowEnd =
+        (navigator.hardwareConcurrency || 8) <= 4 ||
+        (navigator.deviceMemory        || 8) <= 2;
+      const maxDpr = mobileMq.matches ? (isLowEnd ? 1.5 : 2) : 2.5;
+      const dpr    = Math.min(window.devicePixelRatio || 1, maxDpr);
+
+      canvas.width  = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform2f(uRes, canvas.width, canvas.height);
     }
@@ -290,10 +278,6 @@ export default function WaterBackground({ strength = 0.72 }) {
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
     // ── Animation loop ────────────────────────────────────────────────────────
-    // No auto-spawned ripples here — waveH already supplies the "subtle,
-    // slow base movement"; ripples only ever come from real pointer input
-    // (see addRipple calls in the event handlers below), so the surface
-    // stays calm until something actually touches it.
     let rafId  = 0;
     let paused = false;
     const t0   = performance.now();
@@ -321,7 +305,6 @@ export default function WaterBackground({ strength = 0.72 }) {
       addRipple(x / rect.width, y / rect.height, strengthRef.current);
     }
 
-    // Touch gets a single light ripple per tap, not a continuous trail.
     function onTouchStart(e) {
       const rect = canvas.getBoundingClientRect();
       const t    = e.touches[0];
@@ -334,13 +317,32 @@ export default function WaterBackground({ strength = 0.72 }) {
 
     function onVisible() { paused = document.hidden; }
 
-    // Pause when scrolled off-screen — avoids burning GPU on an invisible canvas.
+    // ── ResizeObserver — debounced 80ms ───────────────────────────────────────
+    // On Android, ResizeObserver can fire several times during a resize/
+    // rotation before the layout settles. Debouncing avoids thrashing the
+    // canvas dimensions and avoids the intermediate 0×0 reads.
+    let resizeTimer = 0;
+    function scheduleResize(delay) {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resize, delay);
+    }
+
+    // ── Orientation change ─────────────────────────────────────────────────────
+    // On Android Chrome, getBoundingClientRect() returns stale dimensions for
+    // up to ~150ms after orientationchange fires. Give it 200ms to settle.
+    const onOrient = () => scheduleResize(200);
+
+    const ro = new ResizeObserver(() => scheduleResize(80));
     const io = new IntersectionObserver(
-      ([entry]) => { paused = !entry.isIntersecting; },
+      ([entry]) => {
+        paused = !entry.isIntersecting;
+        // Kick a resize when the canvas first becomes visible — ensures
+        // viewport/u_res are correct after late layout (e.g. Android startup).
+        if (entry.isIntersecting) scheduleResize(0);
+      },
       { threshold: 0 }
     );
 
-    const ro = new ResizeObserver(resize);
     ro.observe(canvas);
     io.observe(canvas);
 
@@ -349,17 +351,19 @@ export default function WaterBackground({ strength = 0.72 }) {
 
     if (isFine) window.addEventListener('mousemove',  onMouseMove, { passive: true });
     window.addEventListener('touchstart',         onTouchStart, { passive: true });
+    window.addEventListener('orientationchange',  onOrient);
     document.addEventListener('visibilitychange', onVisible);
 
     return () => {
       cancelAnimationFrame(rafId);
+      clearTimeout(resizeTimer);
       ro.disconnect();
       mo.disconnect();
       io.disconnect();
       if (isFine) window.removeEventListener('mousemove',  onMouseMove);
-      window.removeEventListener('touchstart',         onTouchStart);
+      window.removeEventListener('touchstart',        onTouchStart);
+      window.removeEventListener('orientationchange', onOrient);
       document.removeEventListener('visibilitychange', onVisible);
-      // WebGL resource cleanup
       gl.deleteProgram(prog);
       gl.deleteShader(vert);
       gl.deleteShader(frag);

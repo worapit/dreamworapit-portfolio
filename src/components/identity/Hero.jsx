@@ -4,6 +4,7 @@ import { useRef, useEffect } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import RotatingWord from './RotatingWord';
 import WaterBackground from './WaterBackground';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 /**
  * Hero section — full-viewport intro with loader-coordinated entrance.
@@ -111,7 +112,13 @@ export default function Hero() {
               </span>
             </h1>
 
-            {/* 3. Current role — "Livinginsider" is underlined and
+            {/* 3. Supporting paragraph */}
+            <p className="hero__support" data-gsap="" data-hero-role="">
+              Building experiences that balance user needs and business goals
+              through creative problem-solving.
+            </p>
+
+            {/* 4. Current role — "Livinginsider" is underlined and
                 prepared as a future link; no routing wired up yet.
                 role="button" registers it with the site's custom-cursor
                 hover affordance (native `cursor` is suppressed globally
@@ -138,17 +145,11 @@ export default function Hero() {
         aria-label="Scroll to Featured Work"
       >
         <span className="hero__indicator-label">Featured Work</span>
-        <svg
+        <ChevronDownIcon
           className="hero__indicator-chevron"
-          width="16" height="16" viewBox="0 0 16 16" fill="none"
+          width={16} height={16}
           aria-hidden="true"
-        >
-          <path
-            d="M4 6l4 4 4-4"
-            stroke="currentColor" strokeWidth="1.5"
-            strokeLinecap="round" strokeLinejoin="round"
-          />
-        </svg>
+        />
       </a>
     </section>
   );

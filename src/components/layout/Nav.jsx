@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from '../../hooks/useTheme';
+import { SunIcon, MoonIcon, Bars3Icon } from '@heroicons/react/24/outline';
 
 const NAV_LINKS = [
   { label: 'Work',   href: '/work'   },
@@ -174,7 +175,7 @@ export default function Nav() {
                 combined that's a 20px gap from "About" to the divider
                 line — the action-wrapper gap. Work↔About itself stays
                 a steady 24px via this gap-6. */}
-            <ul className="hidden md:flex items-center gap-6 list-none !p-2 !mr-3 " role="list">
+            <ul className="hidden md:flex items-center gap-8 list-none !p-2 !mx-3 " role="list">
               {NAV_LINKS.map(({ label, href }) => {
                 const active = isActive(href);
                 return (
@@ -199,7 +200,7 @@ export default function Nav() {
             {/* Divider — a tight 6px margin of its own before the
                 action group, deliberately smaller than the 20px gap
                 it just had on its other side. */}
-            <span aria-hidden="true" className="hidden md:block h-[18px] w-px shrink-0 bg-[var(--bd-2)] !mr-3" />
+            <span aria-hidden="true" className="hidden md:block h-[18px] w-px shrink-0 bg-[var(--bd-2)] !mx-3" />
 
             <div className="flex items-center gap-3">
               {/* Theme toggle */}
@@ -210,15 +211,8 @@ export default function Nav() {
                 aria-pressed={isDark}
                 className={ICON_BTN_BASE}
               >
-                <svg className="block dark:hidden h-[14px] w-[14px]" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3"/>
-                  <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M11.89 4.11l1.06-1.06M3.05 12.95l1.06-1.06"
-                    stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                </svg>
-                <svg className="hidden dark:block h-[14px] w-[14px]" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5z"
-                    stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
-                </svg>
+                <SunIcon  className="block dark:hidden h-[14px] w-[14px]" aria-hidden="true" />
+                <MoonIcon className="hidden dark:block h-[14px] w-[14px]" aria-hidden="true" />
               </button>
 
               {/* Desktop CTA — primary action. Hash link to the Home
@@ -238,12 +232,13 @@ export default function Nav() {
                   elsewhere in this pill for the same class of collision
                   (see !p-2 / !mr-3 above). Without the `!`, this CTA
                   rendered on mobile despite `hidden`. */}
-              <Link
-                href="/#contact"
-                className="!hidden md:!inline-flex btn btn--pr btn--sm h-9 px-[18px]"
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-contact-modal'))}
+                className="!hidden md:!inline-flex btn btn--pr btn--sm h-10 px-[18px]"
               >
                 Get in Touch
-              </Link>
+              </button>
 
               {/* Hamburger */}
               <button
@@ -254,10 +249,7 @@ export default function Nav() {
                 aria-controls="mobile-nav"
                 className={`${ICON_BTN_BASE} md:hidden`}
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M2 4h12M2 8h12M2 12h12"
-                    stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                </svg>
+                <Bars3Icon width={16} height={16} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -292,13 +284,16 @@ export default function Nav() {
           ))}
         </ul>
         <div className="mt-3 border-t border-[var(--bd-1)] pt-3">
-          <Link
-            href="/#contact"
+          <button
+            type="button"
             className="btn btn--pr btn--w"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              window.dispatchEvent(new CustomEvent('open-contact-modal'));
+            }}
           >
             Get in Touch
-          </Link>
+          </button>
         </div>
       </div>
     </header>

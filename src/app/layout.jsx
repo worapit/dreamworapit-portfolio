@@ -6,6 +6,7 @@ import Nav from '../components/layout/Nav';
 import Footer from '../components/layout/Footer';
 import PageWrapper from '../components/layout/PageWrapper';
 import Cursor from '../components/ui/Cursor';
+import ContactModalHost from '../components/layout/ContactModalHost';
 
 /* ── Font via next/font (zero layout shift, self-hosted automatically) ──
    DM Sans is the single global sans-serif — used for both the "display"
@@ -89,6 +90,9 @@ export default function RootLayout({ children }) {
         </PageWrapper>
 
         <Footer />
+        {/* Global contact modal — mounted at layout level so position:fixed
+            resolves to the viewport, not to any transformed ancestor. */}
+        <ContactModalHost />
       </body>
     </html>
   );
